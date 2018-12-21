@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <external-path
+        name="external_files" path="DCIM/Camera/"/>
+    <external-path
+        name="shands" path="shands/"/>
+    <files-path name="data-shands" path="shands/" />
+</resources>

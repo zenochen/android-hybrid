@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">开元商祺会</string>
+
+    <string name="tab1_name">预订</string>
+    <string name="tab2_name">种草</string>
+    <string name="tab3_name">订单</string>
+    <string name="tab4_name">个人</string>
+
+    <string name="pay_result_tip">这个界面用于显示第三方app通过微信支付的结果</string>
+    <string name="pay_result_callback_msg" formatted="false">微信支付结果：%s</string>
+    <string name="app_tip">提示</string>
+</resources>

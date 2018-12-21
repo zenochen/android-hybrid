@@ -1,0 +1,108 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-CN" dir="ltr">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <style>
+        input{width:400px;height:120px;font-size:50px};
+    </style>
+    <script src="http://code.jquery.com/jquery-latest.js"></script>
+
+    <script type="text/javascript">
+
+        function camera(){
+            window.android.callCamera();
+        }
+
+        function setImage(path){
+            document.getElementById("img").setAttribute("src",path);
+        }
+
+        function alipay(){
+            window.android.alipay();
+        }
+
+        function wxpay(){
+            window.android.wxpay();
+        }
+
+        function unionpay(){
+            window.android.unionpay();
+        }
+
+        function log(msg){
+            console.log(msg);
+        }
+
+        function getDevice(){
+            var txt = window.android.getDevice();
+            $("#text").html(txt);
+        }
+
+        function callPhone(){
+            var txt = window.android.callPhone('110');
+        }
+
+        function getChannel(){
+            $("#text").html(window.android.getChannel());
+        }
+
+        function shareWx(text){
+            $("#text").html(window.android.shareWx(text));
+        }
+
+        function shareWxTimeline(text){
+            $("#text").html(window.android.shareWxTimeline(text));
+        }
+
+        function shareQQ(text){
+            $("#text").html(window.android.shareQQ(text));
+        }
+
+        function shareWeibo(text){
+            $("#text").html(window.android.shareWeibo(text));
+        }
+
+        function amapGps(){
+            $("#text").html(window.android.amapGps());
+        }
+
+        function setLoc(a,b){
+            $("#text").html(a+","+b);
+        }
+
+        function bitmapToBase64(){
+            $("#text").html(window.android.bitmapToBase64());
+        }
+
+        function bitmapCompress(){
+            //document.getElementById("img").setAttribute("src",window.android.bitmapCompress());
+            $("#text").html(window.android.bitmapCompress());
+        }
+
+        function showMap(){
+            window.android.showMap("开元名都大酒店");
+        }
+
+    </script>
+
+</head>
+
+<br>
+<input type="button" value="获取设备号" onclick="getDevice()"/>
+<input type="button" value="调用相机" onclick="camera()"/><br/>
+<input type="button" value="支付宝支付" onclick="alipay()"/>
+<input type="button" value="微信支付" onclick="wxpay()"/><br/>
+<input type="button" value="银联支付" onclick="unionpay()"/>
+<input type="button" value="打电话" onclick="callPhone()"/><br/>
+<input type="button" value="读取渠道" onclick="getChannel()"/>
+<input type="button" value="分享微信朋友" onclick="shareWx('你好')"/><br/>
+<input type="button" value="分享微信朋友圈" onclick="shareWxTimeline('你好')"/>
+<input type="button" value="分享QQ" onclick="shareQQ('你好')"/><br/>
+<input type="button" value="分享新浪微博" onclick="shareWeibo('你好')"/>
+<input type="button" value="高德地图定位" onclick="amapGps()"/><br/>
+<input type="button" value="图片转base64" onclick="bitmapToBase64()"/>
+<input type="button" value="图片压缩" onclick="bitmapCompress()"/><br/>
+<input type="button" value="打开地图" onclick="showMap()"/>
+<label id="text" style="font-size:60"></label><br/>
+<img id="img" src="" style="width:600px;height:800px"/>
+</body>
+</html>
