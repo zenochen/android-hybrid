@@ -43,7 +43,8 @@ public class MessageCenterActivity extends SwipeBackActivity implements View.OnC
     //下拉刷新
     PtrFrameLayout ptrFrameLayout;
     //暂无数据提示
-    LinearLayout msg_notice;
+    PtrFrameLayout ptrFrameLayout0;
+
     RelativeLayout loading;
     LinearLayout statusBar;
 
@@ -77,14 +78,26 @@ public class MessageCenterActivity extends SwipeBackActivity implements View.OnC
                         msgs.addAll(list);
                         adapter.notifyDataSetChanged();
                         if(msgs.size() == 0){
-                            msg_notice.setVisibility(View.VISIBLE);
+                            ptrFrameLayout0.setVisibility(View.VISIBLE);
                             ptrFrameLayout.setVisibility(View.GONE);
+                        }else{
+                            ptrFrameLayout0.setVisibility(View.GONE);
+                            ptrFrameLayout.setVisibility(View.VISIBLE);
                         }
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(MessageCenterActivity.this);
                     }else{
+                        ptrFrameLayout0.setVisibility(View.VISIBLE);
+                        ptrFrameLayout.setVisibility(View.GONE);
                         Toast.makeText(MessageCenterActivity.this,message,Toast.LENGTH_LONG).show();
                     }
 
-                    ptrFrameLayout.refreshComplete();
+                    if(ptrFrameLayout0.isRefreshing()){
+                        ptrFrameLayout0.refreshComplete();
+                    }
+                    if(ptrFrameLayout.isRefreshing()){
+                        ptrFrameLayout.refreshComplete();
+                    }
                 }
             }catch (Exception e){
                 Log.e(TAG, "Exception: " + e.getMessage());
@@ -106,8 +119,8 @@ public class MessageCenterActivity extends SwipeBackActivity implements View.OnC
     void initComponent(){
         msg_back = (RelativeLayout) findViewById(R.id.msg_back);
         msg_lv = (ListView) findViewById(R.id.msg_lv);
-        msg_notice = (LinearLayout) findViewById(R.id.msg_notice);
         ptrFrameLayout = (PtrFrameLayout) findViewById(R.id.msg_ptr);
+        ptrFrameLayout0 = (PtrFrameLayout) findViewById(R.id.msg_ptr0);
         loading = (RelativeLayout) findViewById(R.id.msg_loading);
 
         //下拉刷新
@@ -130,6 +143,27 @@ public class MessageCenterActivity extends SwipeBackActivity implements View.OnC
         });
         //设置模式
         ptrFrameLayout.setMode(PtrFrameLayout.Mode.REFRESH);
+
+        //下拉刷新
+        CommonRefreshHeader commonRefreshHeader0 = new CommonRefreshHeader(this);
+        ptrFrameLayout0.setHeaderView(commonRefreshHeader0);
+        ptrFrameLayout0.addPtrUIHandler(commonRefreshHeader0);
+
+        //下拉刷新监听
+        ptrFrameLayout0.setPtrHandler(new PtrDefaultHandler() {
+            @Override
+            public void onRefreshBegin(PtrFrameLayout frame) {
+                ptrFrameLayout0.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        refreshData();
+                    }
+                },1000);
+
+            }
+        });
+        //设置模式
+        ptrFrameLayout0.setMode(PtrFrameLayout.Mode.REFRESH);
 
         //调整通知栏高度
         statusBar = (LinearLayout) findViewById(R.id.msg_status_bar);

@@ -84,6 +84,8 @@ public class ChangeAccountActivity extends SwipeBackActivity implements View.OnC
                             change_finish.setVisibility(View.GONE);
                         }
                         adapter.notifyDataSetChanged();
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(ChangeAccountActivity.this);
                     }else{
                         Toast.makeText(ChangeAccountActivity.this,message,Toast.LENGTH_LONG).show();
                     }
@@ -98,8 +100,11 @@ public class ChangeAccountActivity extends SwipeBackActivity implements View.OnC
                         SharedPreferencesHelper sharedPreferencesHelper = new SharedPreferencesHelper(ChangeAccountActivity.this);
                         String token = jo.getAsJsonObject("data").get("token").getAsString();
                         sharedPreferencesHelper.put(SharedPref.TOKEN,token);
+                        sharedPreferencesHelper.put(SharedPref.HTML5_LOGINED,false);
                         HttpHelper.setAuthorization(token);
                         finish();
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(ChangeAccountActivity.this);
                     }else{
                         Toast.makeText(ChangeAccountActivity.this,message,Toast.LENGTH_LONG).show();
                     }

@@ -23,7 +23,6 @@ import com.NewCenturyHotels.NewCentury.cons.AppInfo;
 import com.NewCenturyHotels.NewCentury.cons.CheckCodeTypeEnum;
 import com.NewCenturyHotels.NewCentury.cons.Const;
 import com.NewCenturyHotels.NewCentury.cons.Regex;
-import com.NewCenturyHotels.NewCentury.req.CheckMemberReq;
 import com.NewCenturyHotels.NewCentury.req.SendEmailCheckReq;
 import com.NewCenturyHotels.NewCentury.req.SendMobileCheckReq;
 import com.NewCenturyHotels.NewCentury.util.HttpHelper;
@@ -107,6 +106,8 @@ public class SetPhoneEmailActivity extends SwipeBackActivity implements View.OnC
                         intent.putExtra("oldCheckCodeToken",oldCheckCodeToken);
                         intent.putExtra("oldCheckCode",oldCheckCode);
                         startActivity(intent);
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(SetPhoneEmailActivity.this);
                     }else{
                         Toast.makeText(SetPhoneEmailActivity.this,message,Toast.LENGTH_SHORT).show();
                     }

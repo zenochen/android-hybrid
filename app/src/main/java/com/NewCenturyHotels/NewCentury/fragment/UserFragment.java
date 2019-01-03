@@ -26,8 +26,6 @@ import com.NewCenturyHotels.NewCentury.R;
 import com.NewCenturyHotels.NewCentury.activity.ChangeAccountActivity;
 import com.NewCenturyHotels.NewCentury.activity.Html5Activity;
 import com.NewCenturyHotels.NewCentury.activity.MessageCenterActivity;
-import com.NewCenturyHotels.NewCentury.activity.MyBalanceActivity;
-import com.NewCenturyHotels.NewCentury.activity.MyPointsActivity;
 import com.NewCenturyHotels.NewCentury.activity.PersonalActivity;
 import com.NewCenturyHotels.NewCentury.activity.SettingsActivity;
 import com.NewCenturyHotels.NewCentury.activity.SignInByCodeActivity;
@@ -47,6 +45,7 @@ import com.bumptech.glide.request.RequestOptions;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.hjm.bottomtabbar.BottomTabBar;
 import com.sunfusheng.marqueeview.MarqueeView;
 import com.youth.banner.Banner;
 import com.youth.banner.BannerConfig;
@@ -116,6 +115,9 @@ public class UserFragment extends Fragment implements View.OnClickListener{
     UserCenter userCenter;
 
     final static String TAG = UserFragment.class.getName();
+    final int GET_BACK = 1;
+
+    private BottomTabBar mBottomTabBar;
 
     Handler handler = new Handler(){
         @Override
@@ -134,7 +136,7 @@ public class UserFragment extends Fragment implements View.OnClickListener{
                         userCenter = gson.fromJson(data,UserCenter.class);
                         tab4_tv_name.setText(userCenter.getMemberInfoData().getNameCN());
                         tab4_tv_card.setText(userCenter.getMemberInfoData().getCardLevelName());
-                        tab4_tv_balance.setText(userCenter.getMemberInfoData().getBalance());
+                        tab4_tv_balance.setText(String.format("%.2f",Double.parseDouble(userCenter.getMemberInfoData().getBalance())/100));
                         tab4_tv_credit.setText(userCenter.getMemberInfoData().getPoints());
                         tab4_tv_ets.setText(userCenter.getVoucherCount());
                         if(!userCenter.getHeadImages().isEmpty()){
@@ -146,10 +148,11 @@ public class UserFragment extends Fragment implements View.OnClickListener{
                         //初始化通知列表
                         infos = new ArrayList<>();
                         for(int j = 0;j < userCenter.getNoticeManagement().length;j++){
-
                             infos.add(userCenter.getNoticeManagement()[j]);
                         }
                         initMarque();
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(getActivity());
                     }else{
                         Toast.makeText(getContext(),message,Toast.LENGTH_LONG).show();
                     }
@@ -269,6 +272,8 @@ public class UserFragment extends Fragment implements View.OnClickListener{
         layoutParams.height = StatusBarUtils.getStatusBarHeight(getActivity());
         layoutParams.width = LinearLayout.LayoutParams.MATCH_PARENT;
         statusBar.setLayoutParams(layoutParams);
+
+        mBottomTabBar = getActivity().findViewById(R.id.bottom_tab_bar);
     }
 
     void startLoading(){
@@ -325,7 +330,7 @@ public class UserFragment extends Fragment implements View.OnClickListener{
                 String url = infos.get(position).getUrl();
                 Intent intent=new Intent(getContext(), Html5Activity.class);
                 intent.putExtra("url",url);
-                startActivity(intent);
+                startActivityForResult(intent,GET_BACK);
             }
         });
     }
@@ -349,6 +354,10 @@ public class UserFragment extends Fragment implements View.OnClickListener{
                         String url = infos[position].getRedirectUrl();
                         Intent intent=new Intent(getContext(), Html5Activity.class);
                         intent.putExtra("url",url);
+                        sharedPreferencesHelper = new SharedPreferencesHelper(getContext());
+                        if(!(Boolean) sharedPreferencesHelper.get(SharedPref.LOGINED,false)){//未登录
+                            intent.putExtra("needNotLogin",true);
+                        }
                         startActivity(intent);
                     }
                 }
@@ -375,7 +384,7 @@ public class UserFragment extends Fragment implements View.OnClickListener{
                         intent.putExtra("url",Const.GIFT_RECEIVE);
                         break;
                 }
-                startActivity(intent);
+                startActivityForResult(intent,GET_BACK);
             }
         });
         tab4_gv_2.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -384,8 +393,8 @@ public class UserFragment extends Fragment implements View.OnClickListener{
                 Intent intent = new Intent(getActivity(),Html5Activity.class);
                 switch (i){
                     case 0:
-                        intent.putExtra("url",Const.MY_ORDER);
-                        break;
+                        mBottomTabBar.setCurrentTab(2);
+                        return;
                     case 1:
                         intent.putExtra("url",Const.MY_COMMENT);
                         break;
@@ -396,13 +405,14 @@ public class UserFragment extends Fragment implements View.OnClickListener{
                         intent.putExtra("url",Const.MY_CONSUME);
                         break;
                     case 4:
-                        intent.putExtra("url",Const.POINT_STORE);
+                        String url = Const.FREEMARK_PATH + "token=" + HttpHelper.getAuthorization() + "&redirectUrl=" + Const.POINT_STORE;
+                        intent.putExtra("url",url);
                         break;
                     case 5:
-                        intent.putExtra("url",Const.POINT_STORE);
+                        intent.putExtra("url",Const.GIFT_CARD);
                         break;
                     case 6:
-                        intent.putExtra("url",Const.POINT_STORE);
+                        intent.putExtra("url",Const.UNION_CARD);
                         break;
                     case 7:
                         intent.putExtra("url",Const.PASSAGE_INFO);
@@ -414,7 +424,7 @@ public class UserFragment extends Fragment implements View.OnClickListener{
                         intent.putExtra("url",Const.ABOUT_US);
                         break;
                 }
-                startActivity(intent);
+                startActivityForResult(intent,GET_BACK);
             }
         });
 
@@ -427,7 +437,27 @@ public class UserFragment extends Fragment implements View.OnClickListener{
         tab4_gv_20.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Toast.makeText(getContext(),"请先登录",Toast.LENGTH_LONG).show();
+                if(i == 9){
+                    Intent intent = new Intent(getActivity(),Html5Activity.class);
+                    intent.putExtra("url",Const.ABOUT_US);
+                    intent.putExtra("needNotLogin",true);
+                    startActivity(intent);
+                }else if(i == 4){
+                    Intent intent = new Intent(getActivity(),Html5Activity.class);
+                    String url = Const.FREEMARK_PATH + "token=" + HttpHelper.getAuthorization() + "&redirectUrl=" + Const.POINT_STORE;
+                    intent.putExtra("url",url);
+                    intent.putExtra("needNotLogin",true);
+                    startActivity(intent);
+                }else if(i == 6){
+                    Intent intent = new Intent(getActivity(),Html5Activity.class);
+                    String url = Const.UNION_CARD;
+                    intent.putExtra("url",url);
+                    intent.putExtra("needNotLogin",true);
+                    startActivity(intent);
+                }else{
+                    Toast.makeText(getContext(),"请先登录",Toast.LENGTH_LONG).show();
+                }
+
             }
         });
     }
@@ -435,8 +465,8 @@ public class UserFragment extends Fragment implements View.OnClickListener{
     void initPageData(){
 
         //第一行按钮
-        int icno[] = { R.drawable.membercenter_benifit,R.drawable.membercenter_package,
-                R.drawable.membercenter_package,R.drawable.membercenter_kampong};
+        int icno[] = { R.drawable.membercenter_benifit,R.drawable.membercenter_choujiang,
+                R.drawable.membercenter_package,R.drawable.membercenter_dreamer};
         //图标下的文字
         String name[]={"每日签到","积分抽奖","领取礼包","祺行梦想家"};
         tab4_gv1_dataList = new ArrayList<Map<String, Object>>();
@@ -455,9 +485,9 @@ public class UserFragment extends Fragment implements View.OnClickListener{
 
         //我的服务按钮
         int icno2[] = { R.drawable.membercenter_orders,R.drawable.membercenter_comments,
-                R.drawable.membercenter_favorite,R.drawable.membercenter_favorite,
+                R.drawable.membercenter_favorite,R.drawable.membercenter_fees,
                 R.drawable.membercenter_mall,R.drawable.membercenter_gift,R.drawable.membercenter_cards,
-                R.drawable.membercenter_gusets,R.drawable.membercenter_invoice,R.drawable.membercenter_invoice};
+                R.drawable.membercenter_gusets,R.drawable.membercenter_invoice,R.drawable.membercenter_about};
         //图标下的文字
         String name2[]={"我的订单","我的评论","我的收藏","我的消费","积分商城","礼品卡","联名卡","常客信息","我的发票","关于我们"};
         tab4_gv2_dataList = new ArrayList<Map<String, Object>>();
@@ -537,37 +567,46 @@ public class UserFragment extends Fragment implements View.OnClickListener{
                 break;
             case R.id.tab4_tv_change_account:
                 intent=new Intent(getContext(), ChangeAccountActivity.class);
-                startActivity(intent);
+                startActivityForResult(intent,GET_BACK);
                 break;
             case R.id.tab4_card:
                 intent=new Intent(getContext(), Html5Activity.class);
                 intent.putExtra("url",Const.MEMBER);
-                startActivity(intent);
+                startActivityForResult(intent,GET_BACK);
                 break;
             case R.id.tab4_iv_edit:
                 intent=new Intent(getContext(), PersonalActivity.class);
-                startActivity(intent);
+                startActivityForResult(intent,GET_BACK);
                 break;
             case R.id.tab4_balance:
                 intent=new Intent(getContext(), Html5Activity.class);
                 intent.putExtra("url",Const.MY_MONEY);
-                startActivity(intent);
+                startActivityForResult(intent,GET_BACK);
                 break;
             case R.id.tab4_credit:
                 intent=new Intent(getContext(), Html5Activity.class);
                 intent.putExtra("url",Const.MY_POINTS);
-                startActivity(intent);
+                startActivityForResult(intent,GET_BACK);
                 break;
             case R.id.tab4_ets:
                 intent=new Intent(getContext(), Html5Activity.class);
                 intent.putExtra("url",Const.MY_COUPONS);
-                startActivity(intent);
+                startActivityForResult(intent,GET_BACK);
                 break;
             case R.id.tab4_tv_login:
                 App.mInfo.put(AppInfo.TAB_INDEX,3);
                 intent=new Intent(getContext(), SignInByCodeActivity.class);
                 startActivity(intent);
                 break;
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == GET_BACK){
+            startLoading();
+            initUserInfo();
         }
     }
 }

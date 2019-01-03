@@ -125,6 +125,8 @@ public class SignCodeActivity extends SwipeBackActivity implements View.OnClickL
                         if(tmp > 0){
                             often = tmp;
                         }
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(SignCodeActivity.this);
                     }else{
                         Toast.makeText(SignCodeActivity.this,message,Toast.LENGTH_SHORT).show();
                     }
@@ -144,6 +146,8 @@ public class SignCodeActivity extends SwipeBackActivity implements View.OnClickL
                         sharedPreferencesHelper.put(SharedPref.LOGINED,true);
                         intent = new Intent(SignCodeActivity.this,MainActivity.class);
                         startActivity(intent);
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(SignCodeActivity.this);
                     }
                     else{
                         Toast.makeText(SignCodeActivity.this,message,Toast.LENGTH_SHORT).show();
@@ -162,6 +166,8 @@ public class SignCodeActivity extends SwipeBackActivity implements View.OnClickL
                         intent.putExtra("validateToken",validateToken);
                         intent.putExtra("blackBox",blackBox);
                         startActivity(intent);
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(SignCodeActivity.this);
                     }else{
                         Toast.makeText(SignCodeActivity.this,message,Toast.LENGTH_SHORT).show();
                     }

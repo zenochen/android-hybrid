@@ -1,7 +1,14 @@
 package com.NewCenturyHotels.NewCentury.util;
 
+import android.content.Context;
+import android.content.Intent;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.Toast;
+
+import com.NewCenturyHotels.NewCentury.activity.MainActivity;
+import com.NewCenturyHotels.NewCentury.activity.SignInByCodeActivity;
+import com.NewCenturyHotels.NewCentury.cons.SharedPref;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -30,6 +37,18 @@ public class HttpHelper {
 
     public static void setAuthorization(String authorization) {
         Authorization = authorization;
+    }
+
+    public static void reLogin(Context context){
+        SharedPreferencesHelper sharedPreferencesHelper = new SharedPreferencesHelper(context);
+        sharedPreferencesHelper.put(SharedPref.LOGINED,false);
+        sharedPreferencesHelper.put(SharedPref.HTML5_LOGINED,false);
+        sharedPreferencesHelper.put(SharedPref.TOKEN,"");
+        HttpHelper.setAuthorization("");
+        Toast.makeText(context,"请重新登录",Toast.LENGTH_LONG).show();
+        Intent intent = new Intent(context,MainActivity.class);
+        intent.putExtra("reLogin",true);
+        context.startActivity(intent);
     }
 
     public static String get(String url) throws IOException {

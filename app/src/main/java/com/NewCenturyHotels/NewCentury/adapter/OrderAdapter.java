@@ -63,7 +63,6 @@ public class OrderAdapter extends BaseAdapter{
 
         holder.cancel_btn = (Button) view.findViewById(R.id.order_cancel);
         holder.del_btn = (Button) view.findViewById(R.id.order_del);
-        holder.repay_btn = (Button) view.findViewById(R.id.order_repay);
         holder.pay_btn = (Button) view.findViewById(R.id.order_pay);
         holder.comment_btn = (Button) view.findViewById(R.id.order_comment);
         holder.commentDetail_btn = (Button) view.findViewById(R.id.order_comment_detail);
@@ -75,13 +74,23 @@ public class OrderAdapter extends BaseAdapter{
         holder.roomType_tv.setText(bean.getRoomTypeName());
         holder.roomNum_tv.setText("("+String.valueOf(bean.getRoomNum())+"间)");
 
-        holder.startDate_tv.setText(bean.getArrDate()+"(入住)-");
-        holder.endDate_tv.setText(bean.getDepDate()+"(离开)");
+        holder.startDate_tv.setText(bean.getArrDate()+"/");
+        holder.endDate_tv.setText(bean.getDepDate());
         TimeUtil util = new TimeUtil();
         long days = util.getDaySpan(util.getTimeSpan(bean.getDepDate(),bean.getArrDate(),TimeUtil.YYYYMMDD));
         holder.days_tv.setText("("+String.valueOf(days)+"晚)");
-        holder.price_tv.setText("¥ "+String.valueOf(bean.getPriceTotal()));
         holder.status_tv.setText(bean.getTradeStateName());
+
+        if("CHG2".equals(bean.getRateCode())){
+            holder.price_tv.setText(String.valueOf(bean.getPoints()+"积分"));
+        }else{
+            holder.price_tv.setText("¥ "+String.valueOf(bean.getPriceTotal()));
+        }
+
+        if(bean.getTradeStateEnum().equals("RESERVE") && bean.getTradePayStateEnum().equals("NOTPAY")
+                && bean.getTradePayWayEnum().equals("WAITPAY")){
+            holder.status_tv.setText("待支付");
+        }
 
         TradeList.OrderOperates[] orderOperates = bean.getOrderOperates();
         for (TradeList.OrderOperates o : orderOperates) {
@@ -93,6 +102,12 @@ public class OrderAdapter extends BaseAdapter{
             }
             if (o.getName().equals("cancel")) {
                 holder.cancel_btn.setVisibility(View.VISIBLE);
+            }
+            if(o.getName().equals("commentDetail")){
+                holder.commentDetail_btn.setVisibility(View.VISIBLE);
+            }
+            if(o.getName().equals("del")){
+                holder.del_btn.setVisibility(View.VISIBLE);
             }
         }
 
@@ -122,7 +137,12 @@ public class OrderAdapter extends BaseAdapter{
                 mOnItemDeleteListener.onCommentDetailClick(i);
             }
         });
-
+        holder.del_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mOnItemDeleteListener.onDeleteClick(i);
+            }
+        });
 
         return view;
     }
@@ -135,6 +155,7 @@ public class OrderAdapter extends BaseAdapter{
         void onCancelClick(int i);
         void onCommentClick(int i);
         void onCommentDetailClick(int i);
+        void onDeleteClick(int i);
     }
 
     private onItemHandleListener mOnItemDeleteListener;
@@ -154,7 +175,6 @@ public class OrderAdapter extends BaseAdapter{
         TextView price_tv;
         Button pay_btn;
         Button cancel_btn;
-        Button repay_btn;
         Button del_btn;
         Button comment_btn;
         Button commentDetail_btn;

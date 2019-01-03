@@ -1,6 +1,5 @@
 package com.NewCenturyHotels.NewCentury.fragment;
 
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -14,20 +13,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
-import android.widget.SimpleAdapter;
-import android.widget.TextView;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.NewCenturyHotels.NewCentury.App;
 import com.NewCenturyHotels.NewCentury.R;
-import com.NewCenturyHotels.NewCentury.activity.AdvertisingActivity;
-import com.NewCenturyHotels.NewCentury.activity.GuideActivity;
 import com.NewCenturyHotels.NewCentury.activity.Html5Activity;
-import com.NewCenturyHotels.NewCentury.activity.WelcomeActivity;
 import com.NewCenturyHotels.NewCentury.adapter.HomeGridAdapter;
 import com.NewCenturyHotels.NewCentury.bean.AppVersionRes;
 import com.NewCenturyHotels.NewCentury.bean.HomeGrid;
-import com.NewCenturyHotels.NewCentury.bean.TradeList;
 import com.NewCenturyHotels.NewCentury.cons.AppInfo;
 import com.NewCenturyHotels.NewCentury.cons.Const;
 import com.NewCenturyHotels.NewCentury.cons.SharedPref;
@@ -46,9 +40,7 @@ import com.youth.banner.listener.OnBannerListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -56,7 +48,7 @@ import okhttp3.Response;
 
 public class HomeFragment extends Fragment {
 
-    private TextView tab1_search;
+    private RelativeLayout tab1_search;
     private GridView home_gridView;
     private Banner banner;
     private List<HomeGrid> iconDatas;
@@ -89,6 +81,10 @@ public class HomeFragment extends Fragment {
                             iconDatas.add(homeGrid);
                         }
                         gridAdapter.notifyDataSetChanged();
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(getActivity());
+                    }else{
+                        Toast.makeText(getContext(),message,Toast.LENGTH_LONG).show();
                     }
                 }
             }catch (Exception e){
@@ -113,7 +109,7 @@ public class HomeFragment extends Fragment {
     }
 
     void initView(){
-        tab1_search = (TextView) view.findViewById(R.id.tab1_tv_search);
+        tab1_search = (RelativeLayout) view.findViewById(R.id.tab1_search);
         home_gridView = (GridView) view.findViewById(R.id.tab1_gv);
         banner = view.findViewById(R.id.banner);
 
@@ -130,7 +126,7 @@ public class HomeFragment extends Fragment {
     //设置图片集合
     void initPic(){
         sharedPreferencesHelper = new SharedPreferencesHelper(getActivity());
-        Boolean ifFirst = (Boolean) sharedPreferencesHelper.get(SharedPref.IS_FIRST,true);
+        Boolean ifFirst = (Boolean) sharedPreferencesHelper.get(SharedPref.FIRST_SHOW,true);
         if(ifFirst){
             String urls = sharedPreferencesHelper.get(SharedPref.HOME_IMAGES,"").toString();
             if(!urls.isEmpty()){
@@ -141,7 +137,6 @@ public class HomeFragment extends Fragment {
                 }
                 initBanner(picUrls);
             }
-            sharedPreferencesHelper.put(SharedPref.IS_FIRST,false);
         }else{
             List<File> files = new ArrayList<>();
             sharedPreferencesHelper = new SharedPreferencesHelper(getContext());
@@ -190,6 +185,17 @@ public class HomeFragment extends Fragment {
         banner.isAutoPlay(true);
         banner.setIndicatorGravity(BannerConfig.RIGHT);
         banner.setBannerAnimation(BannerTransformer.class);
+        banner.setOnBannerListener(new OnBannerListener() {
+            @Override
+            public void OnBannerClick(int position) {
+                AppVersionRes.ImgDataInfo imgDataInfo = ((AppVersionRes)(App.mInfo.get(AppInfo.APP_VERSION))).getImgData().getPageImg()[position];
+                String url = imgDataInfo.getRedirectUrl();
+                Intent intent=new Intent(getContext(), Html5Activity.class);
+                intent.putExtra("url",url);
+                intent.putExtra("needNotLogin",true);
+                startActivity(intent);
+            }
+        });
         //banner设置方法全部调用完毕时最后调用
         banner.start();
     }
@@ -203,11 +209,12 @@ public class HomeFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 String url = iconDatas.get(i).getRedirectSrc();
-                if(!url.contains("http")){
-                    url = Const.APP_ROOT + url;
+                if(url.contains("http")){
+                    url = url.replace("${token}",HttpHelper.getAuthorization());
                 }
                 Intent intent=new Intent(getContext(), Html5Activity.class);
                 intent.putExtra("url",url);
+                intent.putExtra("needNotLogin",true);
                 startActivity(intent);
             }
         });

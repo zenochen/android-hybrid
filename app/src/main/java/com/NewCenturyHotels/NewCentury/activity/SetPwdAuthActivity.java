@@ -1,7 +1,10 @@
 package com.NewCenturyHotels.NewCentury.activity;
 
 import android.Manifest;
+import android.app.Dialog;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -24,6 +27,7 @@ import com.NewCenturyHotels.NewCentury.req.CheckMemberReq;
 import com.NewCenturyHotels.NewCentury.req.SendMobileCheckReq;
 import com.NewCenturyHotels.NewCentury.util.HttpHelper;
 import com.NewCenturyHotels.NewCentury.util.StatusBarUtils;
+import com.NewCenturyHotels.NewCentury.view.CommomDialog;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -54,6 +58,7 @@ public class SetPwdAuthActivity extends SwipeBackActivity implements View.OnClic
     RelativeLayout loading;
     TextView sp_auth_notice;
     TextView sp_auth_title;
+    TextView callPhone;
     LinearLayout statusBar;
 
     //输入
@@ -94,6 +99,8 @@ public class SetPwdAuthActivity extends SwipeBackActivity implements View.OnClic
                         intent.putExtra("validateToken",validateToken);
                         intent.putExtra("blackBox",blackBox);
                         startActivity(intent);
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(SetPwdAuthActivity.this);
                     }else{
                         Toast.makeText(SetPwdAuthActivity.this,message,Toast.LENGTH_LONG).show();
                     }
@@ -108,6 +115,8 @@ public class SetPwdAuthActivity extends SwipeBackActivity implements View.OnClic
                         blackBox = FMAgent.onEvent(SetPwdAuthActivity.this);
                         Log.i(TAG, "blackBox: " + blackBox);
                         captcha.verify();
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(SetPwdAuthActivity.this);
                     } else {
                         Toast.makeText(SetPwdAuthActivity.this,message,Toast.LENGTH_LONG).show();
                     }
@@ -148,6 +157,7 @@ public class SetPwdAuthActivity extends SwipeBackActivity implements View.OnClic
         loading = (RelativeLayout) findViewById(R.id.sp_auth_loading);
         sp_auth_notice = (TextView) findViewById(R.id.sp_auth_notice);
         sp_auth_title = (TextView) findViewById(R.id.sp_auth_title);
+        callPhone = (TextView) findViewById(R.id.sp_auth_tv_phone);
 
         //调整通知栏高度
         statusBar = (LinearLayout) findViewById(R.id.sp_auth_status_bar);
@@ -158,7 +168,7 @@ public class SetPwdAuthActivity extends SwipeBackActivity implements View.OnClic
     }
 
     void initEvent(){
-
+        callPhone.setOnClickListener(this);
         sp_auth_back.setOnClickListener(this);
         sp_auth_clear.setOnClickListener(this);
         sp_auth_submit.setOnClickListener(this);
@@ -302,6 +312,28 @@ public class SetPwdAuthActivity extends SwipeBackActivity implements View.OnClic
         switch (view.getId()) {
             case R.id.sp_auth_back:
                 finish();
+                break;
+            case R.id.sp_auth_tv_phone:
+                CommomDialog dialog = new CommomDialog(SetPwdAuthActivity.this, R.style.dialog, "呼叫：10105050", new CommomDialog.OnCloseListener() {
+                    @Override
+                    public void onClick(Dialog dialog, boolean confirm) {
+                        if(confirm){
+                            dialog.dismiss();
+                            if (ActivityCompat.checkSelfPermission(SetPwdAuthActivity.this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+                                // TODO: Consider calling
+                                ActivityCompat.requestPermissions(SetPwdAuthActivity.this, new String[]{
+                                        Manifest.permission.CALL_PHONE
+                                }, 100);
+                                return;
+                            }
+
+                            Intent intent = new Intent(Intent.ACTION_CALL);
+                            Uri data = Uri.parse("tel:10105050");
+                            intent.setData(data);
+                            startActivity(intent);
+                        }
+                    }
+                });
                 break;
             case R.id.sp_auth_iv_clear:
                 sp_auth_et.setText("");

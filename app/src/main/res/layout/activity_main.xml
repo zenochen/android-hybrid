@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:hjm="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
@@ -20,4 +20,70 @@
         hjm:tab_padding_top="8dp"
         hjm:tab_selected_color="#000000"
         hjm:tab_unselected_color="@color/colorPrimary"/>
-</LinearLayout>
+    <RelativeLayout
+        android:id="@+id/main_prg"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#10000000">
+        <RelativeLayout
+            android:layout_width="295dp"
+            android:layout_height="130dp"
+            android:layout_centerInParent="true"
+            android:background="@drawable/bg_dialog">
+            <TextView
+                android:id="@+id/main_prg_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_centerHorizontal="true"
+                android:text="正在下载"
+                android:textSize="18dp"
+                android:textColor="#000"/>
+            <TextView
+                android:id="@+id/main_prg_progress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/main_prg_title"
+                android:layout_marginTop="5dp"
+                android:layout_marginRight="24dp"
+                android:layout_marginLeft="24dp"
+                android:gravity="right"
+                android:text="0%"
+                android:textSize="12dp"
+                android:textColor="#FF1A1A1A"/>
+            <ProgressBar
+                android:id="@+id/main_prg_progressbar"
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginRight="24dp"
+                android:layout_marginLeft="24dp"
+                android:layout_below="@+id/main_prg_progress"
+                android:progressDrawable="@drawable/progressbar"
+                style="@style/Base.Widget.AppCompat.ProgressBar.Horizontal"/>
+            <LinearLayout
+                android:layout_alignParentBottom="true"
+                android:background="@drawable/bg_dialog_b"
+                android:layout_width="match_parent"
+                android:layout_height="44dp">
+                <RelativeLayout
+                    android:id="@+id/main_prg_dismiss"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_dialog_b2"
+                    android:layout_marginTop="1dp"
+                    android:layout_marginRight="0.5dp">
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:layout_centerInParent="true"
+                        android:text="转到后台下载"
+                        android:textSize="18dp"
+                        android:textColor="#FF1A1A1A"/>
+                </RelativeLayout>
+            </LinearLayout>
+        </RelativeLayout>
+    </RelativeLayout>
+</FrameLayout>

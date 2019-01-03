@@ -27,9 +27,7 @@ import com.NewCenturyHotels.NewCentury.cons.CheckCodeTypeEnum;
 import com.NewCenturyHotels.NewCentury.cons.Const;
 import com.NewCenturyHotels.NewCentury.cons.SharedPref;
 import com.NewCenturyHotels.NewCentury.req.ChangeMobileEmailReq;
-import com.NewCenturyHotels.NewCentury.req.SendLoginedCheckReq;
 import com.NewCenturyHotels.NewCentury.req.SendMobileCheckReq;
-import com.NewCenturyHotels.NewCentury.req.VerifyCheckLoginedReq;
 import com.NewCenturyHotels.NewCentury.req.VerifyCheckReq;
 import com.NewCenturyHotels.NewCentury.util.HttpHelper;
 import com.NewCenturyHotels.NewCentury.util.SharedPreferencesHelper;
@@ -131,6 +129,8 @@ public class ModStep2AuthCodeActivity extends SwipeBackActivity implements View.
                         JsonObject data = jo.getAsJsonObject("data");
                         checkCodeToken = data.get("checkCodeToken").getAsString();
                         often = data.get("often").getAsInt();
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(ModStep2AuthCodeActivity.this);
                     }else{
                         Toast.makeText(ModStep2AuthCodeActivity.this,message,Toast.LENGTH_SHORT).show();
                     }
@@ -144,6 +144,8 @@ public class ModStep2AuthCodeActivity extends SwipeBackActivity implements View.
                         //修改手机邮箱第二步
                         startLoading();
                         changeMobile();
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(ModStep2AuthCodeActivity.this);
                     }else{
                         Toast.makeText(ModStep2AuthCodeActivity.this,message,Toast.LENGTH_LONG).show();
                     }
@@ -162,6 +164,8 @@ public class ModStep2AuthCodeActivity extends SwipeBackActivity implements View.
                         intent = new Intent(ModStep2AuthCodeActivity.this,SignInActivity.class);
                         intent.putExtra("canBack",false);
                         startActivity(intent);
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(ModStep2AuthCodeActivity.this);
                     }else{
                         Toast.makeText(ModStep2AuthCodeActivity.this,message,Toast.LENGTH_LONG).show();
                     }

@@ -52,6 +52,7 @@ public class SignInByCodeActivity extends SwipeBackActivity implements View.OnCl
     EditText signcode_et;
     TextView signcode_get;
     TextView signcode_signin;
+    TextView signcode_rules;
     ImageView iv_clear;
     Intent intent;
     LinearLayout statusBar;
@@ -95,6 +96,8 @@ public class SignInByCodeActivity extends SwipeBackActivity implements View.OnCl
                         intent.putExtra("validateToken",validateToken);
                         intent.putExtra("blackBox",blackBox);
                         startActivity(intent);
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(SignInByCodeActivity.this);
                     }else{
                         Toast.makeText(SignInByCodeActivity.this,message,Toast.LENGTH_LONG).show();
                     }
@@ -107,6 +110,8 @@ public class SignInByCodeActivity extends SwipeBackActivity implements View.OnCl
                     String message = jo.get("msg").getAsString();
                     if (code == 200) {
                         isLogin = true;
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(SignInByCodeActivity.this);
                     } else {
                         isLogin = false;
                     }
@@ -230,6 +235,7 @@ public class SignInByCodeActivity extends SwipeBackActivity implements View.OnCl
         signcode_signin = (TextView) findViewById(R.id.signcode_signin);
         iv_clear = (ImageView) findViewById(R.id.signcode_iv_clear);
         loading = (RelativeLayout) findViewById(R.id.signcode_loading);
+        signcode_rules = (TextView) findViewById(R.id.signcode_rules);
 
         //调整通知栏高度
         statusBar = (LinearLayout) findViewById(R.id.signcode_status_bar);
@@ -240,7 +246,7 @@ public class SignInByCodeActivity extends SwipeBackActivity implements View.OnCl
     }
 
     void initEvent(){
-
+        signcode_rules.setOnClickListener(this);
         signcode_back.setOnClickListener(this);
         signcode_get.setOnClickListener(this);
         signcode_signin.setOnClickListener(this);
@@ -326,6 +332,12 @@ public class SignInByCodeActivity extends SwipeBackActivity implements View.OnCl
         switch (view.getId()) {
             case R.id.signcode_back:
                 finish();
+                break;
+            case R.id.signcode_rules:
+                intent=new Intent(SignInByCodeActivity.this, Html5Activity.class);
+                intent.putExtra("url", Const.CLUB_RULES);
+                intent.putExtra("needNotLogin",true);
+                startActivity(intent);
                 break;
             case R.id.signcode_get:
                 account = signcode_et.getText().toString().replace(" ","").trim();

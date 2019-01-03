@@ -1,11 +1,15 @@
 package com.NewCenturyHotels.NewCentury.wxapi;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import com.NewCenturyHotels.NewCentury.R;
+import com.NewCenturyHotels.NewCentury.activity.Html5Activity;
+import com.NewCenturyHotels.NewCentury.cons.Const;
+import com.NewCenturyHotels.NewCentury.cons.SharedPref;
+import com.NewCenturyHotels.NewCentury.util.SharedPreferencesHelper;
 import com.tencent.mm.opensdk.constants.ConstantsAPI;
 import com.tencent.mm.opensdk.modelbase.BaseReq;
 import com.tencent.mm.opensdk.modelbase.BaseResp;
@@ -42,10 +46,25 @@ public class WXPayEntryActivity extends Activity implements IWXAPIEventHandler {
 	@Override
 	public void onResp(BaseResp resp) {
 		if (resp.getType() == ConstantsAPI.COMMAND_PAY_BY_WX) {
-			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-			builder.setTitle(R.string.app_tip);
-			builder.setMessage(getString(R.string.pay_result_callback_msg, String.valueOf(resp.errCode)));
-			builder.show();
+		    switch (resp.errCode){
+                case 0:
+                    Toast.makeText(WXPayEntryActivity.this,"支付成功",Toast.LENGTH_LONG).show();
+                    SharedPreferencesHelper sharedPreferencesHelper = new SharedPreferencesHelper(this);
+                    String tradeNo = sharedPreferencesHelper.get(SharedPref.TRADE_NO,"").toString();
+                    if(!tradeNo.isEmpty()){
+                        Intent intent = new Intent(WXPayEntryActivity.this,Html5Activity.class);
+                        intent.putExtra("url", Const.ORDER_DETAIL + tradeNo);
+                        startActivity(intent);
+                    }
+                    break;
+                case -1:
+                    Toast.makeText(WXPayEntryActivity.this,"支付失败",Toast.LENGTH_LONG).show();
+                    break;
+                case -2:
+                    Toast.makeText(WXPayEntryActivity.this,"已取消",Toast.LENGTH_LONG).show();
+                    break;
+            }
+			finish();
 		}
 	}
 

@@ -48,23 +48,6 @@
                 android:text="登录"
                 android:textColor="#FFFFFFFF"
                 android:textSize="18dp"/>
-            <TextView
-                android:id="@+id/tab3_orders"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/tab3_login"
-                android:layout_marginTop="25dp"
-                android:layout_centerHorizontal="true"
-                android:text="非会员订单查询"
-                android:textColor="#E0BC5A"
-                android:textSize="16dp"/>
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="0.5dp"
-                android:layout_alignLeft="@+id/tab3_orders"
-                android:layout_alignRight="@+id/tab3_orders"
-                android:layout_below="@+id/tab3_orders"
-                android:background="#E0BC5A"></RelativeLayout>
         </RelativeLayout>
 
         <LinearLayout

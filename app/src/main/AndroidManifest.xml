@@ -53,9 +53,9 @@
     <application
         android:name=".App"
         android:allowBackup="true"
-        android:icon="@drawable/app"
+        android:icon="@mipmap/icon"
         android:label="@string/app_name"
-        android:roundIcon="@drawable/app"
+        android:roundIcon="@mipmap/icon"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:replace="android:icon">
@@ -140,28 +140,26 @@
             android:windowSoftInputMode="adjustResize|stateHidden" />
         <!-- 支付宝支付 -->
 
-        <activity android:name=".activity.Html5Activity" />
+        <activity android:name=".activity.Html5Activity" android:screenOrientation="portrait" />
+        <activity android:name=".activity.PersonalActivity" android:screenOrientation="portrait" />
+        <activity android:name=".activity.SetPwdActivity" android:screenOrientation="portrait" />
+        <activity android:name=".activity.SignInActivity" android:screenOrientation="portrait" />
+        <activity android:name=".activity.SettingsActivity" android:screenOrientation="portrait" />
+        <activity android:name=".activity.ChangeAccountActivity" android:screenOrientation="portrait" />
+        <activity android:name=".activity.ModStep1AuthActivity" android:screenOrientation="portrait" />
+        <activity android:name=".activity.ModStep1AuthCodeActivity" android:screenOrientation="portrait" />
+        <activity android:name=".activity.ModStep2AuthCodeActivity" android:screenOrientation="portrait" />
+        <activity android:name=".activity.SetPwdAuthActivity" android:screenOrientation="portrait" />
+        <activity android:name=".activity.SetPwdAuthCodeActivity" android:screenOrientation="portrait" />
+        <activity android:name=".activity.SetPhoneEmailActivity" android:screenOrientation="portrait" />
+        <activity android:name=".activity.PersonalBaseActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".activity.SignCodeActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".activity.SignInByCodeActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".activity.SignUpAppendActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".activity.MessageCenterActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".activity.MessageDetailActivity" android:screenOrientation="portrait"/>
         <activity
-            android:name=".activity.PersonalActivity"
-            android:theme="@style/Transparent" />
-        <activity android:name=".activity.SetPwdActivity" />
-        <activity android:name=".activity.SignInActivity" />
-        <activity android:name=".activity.SettingsActivity" />
-        <activity android:name=".activity.ChangeAccountActivity" />
-        <activity android:name=".activity.ModStep1AuthActivity" />
-        <activity android:name=".activity.ModStep1AuthCodeActivity" />
-        <activity android:name=".activity.ModStep2AuthCodeActivity" />
-        <activity android:name=".activity.SetPwdAuthActivity" />
-        <activity android:name=".activity.SetPwdAuthCodeActivity" />
-        <activity android:name=".activity.SetPhoneEmailActivity" />
-        <activity android:name=".activity.PersonalBaseActivity" />
-        <activity android:name=".activity.SignCodeActivity" />
-        <activity android:name=".activity.SignInByCodeActivity" />
-        <activity android:name=".activity.SignUpAppendActivity" />
-        <activity android:name=".activity.MessageCenterActivity" />
-        <activity android:name=".activity.MessageDetailActivity" />
-        <activity
-            android:name=".activity.WelcomeActivity"
+            android:name=".activity.WelcomeActivity" android:screenOrientation="portrait"
             android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -169,13 +167,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activity.AdvertisingActivity" android:theme="@style/FullScreen" />
-        <activity android:name=".activity.MainActivity" />
-        <activity android:name=".activity.GuideActivity" />
+        <activity android:name=".activity.AdvertisingActivity" android:theme="@style/FullScreen" android:screenOrientation="portrait" />
+        <activity android:name=".activity.MainActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".activity.GuideActivity" android:screenOrientation="portrait"/>
 
         <!-- 微信支付回调 -->
         <activity
-            android:name=".wxapi.WXPayEntryActivity"
+            android:name=".wxapi.WXPayEntryActivity" android:screenOrientation="portrait"
             android:exported="true"
             android:launchMode="singleTop">
             <intent-filter>

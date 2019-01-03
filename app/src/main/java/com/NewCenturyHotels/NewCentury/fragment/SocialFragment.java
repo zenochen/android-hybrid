@@ -1,5 +1,6 @@
 package com.NewCenturyHotels.NewCentury.fragment;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
@@ -10,12 +11,14 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import com.NewCenturyHotels.NewCentury.R;
+import com.NewCenturyHotels.NewCentury.activity.Html5Activity;
 import com.NewCenturyHotels.NewCentury.cons.Const;
 import com.NewCenturyHotels.NewCentury.util.StatusBarUtils;
 import com.NewCenturyHotels.NewCentury.view.Html5WebView;
@@ -63,6 +66,7 @@ public class SocialFragment extends Fragment {
         plant_wv = new Html5WebView(getContext());
         plant_wv.setLayoutParams(params);
         l2.addView(plant_wv);
+        plant_wv.addJavascriptInterface(new JsInterFace(), "android");
         plant_wv.loadUrl(Const.APP_ROOT + Const.SOCIAL_PLANT);
 
         plant_wv.setWebViewClient(new WebViewClient(){
@@ -75,6 +79,7 @@ public class SocialFragment extends Fragment {
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
+                plant_wv.getSettings().setBlockNetworkImage(false);
                 new Thread(){
                     @Override
                     public void run() {
@@ -98,5 +103,14 @@ public class SocialFragment extends Fragment {
 
     void stopLoading(){
         loading.setVisibility(View.GONE);
+    }
+
+    public class JsInterFace{
+        @JavascriptInterface
+        public void openNewWindow(String url){
+            Intent intent=new Intent(getContext(), Html5Activity.class);
+            intent.putExtra("url",url);
+            startActivity(intent);
+        }
     }
 }

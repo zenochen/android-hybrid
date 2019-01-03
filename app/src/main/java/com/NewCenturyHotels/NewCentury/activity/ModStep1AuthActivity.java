@@ -1,7 +1,10 @@
 package com.NewCenturyHotels.NewCentury.activity;
 
 import android.Manifest;
+import android.app.Dialog;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -25,6 +28,7 @@ import com.NewCenturyHotels.NewCentury.cons.Const;
 import com.NewCenturyHotels.NewCentury.req.SendLoginedCheckReq;
 import com.NewCenturyHotels.NewCentury.util.HttpHelper;
 import com.NewCenturyHotels.NewCentury.util.StatusBarUtils;
+import com.NewCenturyHotels.NewCentury.view.CommomDialog;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -56,6 +60,7 @@ public class ModStep1AuthActivity extends SwipeBackActivity implements View.OnCl
     TextView ms1_auth_notice;
     TextView ms1_auth_title;
     LinearLayout statusBar;
+    TextView callPhone;
 
     //同盾校验
     private TDBindCaptcha captcha;
@@ -95,6 +100,8 @@ public class ModStep1AuthActivity extends SwipeBackActivity implements View.OnCl
                         intent.putExtra("validateToken",validateToken);
                         intent.putExtra("blackBox",blackBox);
                         startActivity(intent);
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(ModStep1AuthActivity.this);
                     }else{
                         Toast.makeText(ModStep1AuthActivity.this,message,Toast.LENGTH_LONG).show();
                     }
@@ -134,6 +141,7 @@ public class ModStep1AuthActivity extends SwipeBackActivity implements View.OnCl
         loading = (RelativeLayout) findViewById(R.id.ms1_auth_loading);
         ms1_auth_notice = (TextView) findViewById(R.id.ms1_auth_notice);
         ms1_auth_title = (TextView) findViewById(R.id.ms1_auth_title);
+        callPhone = (TextView) findViewById(R.id.ms1_auth_tv_phone);
 
         //调整通知栏高度
         statusBar = (LinearLayout) findViewById(R.id.ms1_auth_status_bar);
@@ -167,6 +175,7 @@ public class ModStep1AuthActivity extends SwipeBackActivity implements View.OnCl
         ms1_auth_back.setOnClickListener(this);
         ms1_auth_clear.setOnClickListener(this);
         ms1_auth_submit.setOnClickListener(this);
+        callPhone.setOnClickListener(this);
     }
 
     void startLoading(){
@@ -268,6 +277,29 @@ public class ModStep1AuthActivity extends SwipeBackActivity implements View.OnCl
         switch (view.getId()) {
             case R.id.ms1_auth_back:
                 finish();
+                break;
+            case R.id.ms1_auth_tv_phone:
+                CommomDialog dialog = new CommomDialog(ModStep1AuthActivity.this, R.style.dialog, "呼叫：10105050", new CommomDialog.OnCloseListener() {
+                    @Override
+                    public void onClick(Dialog dialog, boolean confirm) {
+                        if(confirm){
+                            dialog.dismiss();
+                            if (ActivityCompat.checkSelfPermission(ModStep1AuthActivity.this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+                                // TODO: Consider calling
+                                ActivityCompat.requestPermissions(ModStep1AuthActivity.this, new String[]{
+                                        Manifest.permission.CALL_PHONE
+                                }, 100);
+                                return;
+                            }
+
+                            Intent intent = new Intent(Intent.ACTION_CALL);
+                            Uri data = Uri.parse("tel:10105050");
+                            intent.setData(data);
+                            startActivity(intent);
+                        }
+                    }
+                });
+                dialog.show();
                 break;
             case R.id.ms1_auth_iv_clear:
                 ms1_auth_et.setText("");

@@ -12,8 +12,9 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.provider.Settings;
-import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
@@ -22,16 +23,16 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
+import android.webkit.MimeTypeMap;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.NewCenturyHotels.NewCentury.App;
 import com.NewCenturyHotels.NewCentury.R;
-import com.NewCenturyHotels.NewCentury.bean.Advertising;
 import com.NewCenturyHotels.NewCentury.bean.AppVersionRes;
 import com.NewCenturyHotels.NewCentury.cons.AppInfo;
-import com.NewCenturyHotels.NewCentury.cons.Const;
 import com.NewCenturyHotels.NewCentury.cons.SharedPref;
 import com.NewCenturyHotels.NewCentury.fragment.HomeFragment;
 import com.NewCenturyHotels.NewCentury.fragment.OrderFragment;
@@ -45,7 +46,6 @@ import com.NewCenturyHotels.NewCentury.view.AppVersionDialog;
 import com.hjm.bottomtabbar.BottomTabBar;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * 首页
@@ -54,10 +54,15 @@ public class MainActivity extends AppCompatActivity{
 
     private BottomTabBar mBottomTabBar;
     int tabIndex;
+    RelativeLayout main_prog;
+    TextView prog_tv;
+    ProgressBar prog_pb;
+    RelativeLayout prog_dismiss;
+    Boolean isBackRunning = false;
 
     //通知栏通知
     NotificationManager notificationManager;
-    NotificationCompat.Builder builder;
+    Notification.Builder builder;
     Notification notification;
     AppVersionRes appVersionRes;
     AppVersionDialog versionDialog;
@@ -66,13 +71,41 @@ public class MainActivity extends AppCompatActivity{
 
     final static String TAG = MainActivity.class.getName();
 
+    Handler handler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            if(msg.what == 1){
+                setProgressBar(msg.getData().getInt("progress"));
+            }else if(msg.what == 2){
+                main_prog.setVisibility(View.GONE);
+            }
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_main);
         initViews();//初始化控件
+        //重新登录
+        Boolean reLogin = getIntent().getBooleanExtra("reLogin",false);
+        if(reLogin){
+            Intent intent = new Intent(MainActivity.this,SignInByCodeActivity.class);
+            startActivity(intent);
+        }
+        //广告页跳转
+        String url = getIntent().getStringExtra("url");
+        if(url != null){
+            Intent intent = new Intent(MainActivity.this,Html5Activity.class);
+            intent.putExtra("needNotLogin",true);
+            intent.putExtra("url",url);
+            startActivity(intent);
+        }
+        //请求权限
         initPermission();
+        //检测版本
         checkAppVersion();
 
         StatusBarUtils.with(this).init();
@@ -80,6 +113,19 @@ public class MainActivity extends AppCompatActivity{
 
     //初始化控件
     private void initViews() {
+
+        main_prog = (RelativeLayout) findViewById(R.id.main_prg);
+        prog_tv = (TextView) findViewById(R.id.main_prg_progress);
+        prog_pb = (ProgressBar) findViewById(R.id.main_prg_progressbar);
+        prog_dismiss = (RelativeLayout) findViewById(R.id.main_prg_dismiss);
+        prog_dismiss.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                main_prog.setVisibility(View.GONE);
+                initNotification();
+                isBackRunning = true;
+            }
+        });
 
         mBottomTabBar = (BottomTabBar) findViewById(R.id.bottom_tab_bar);
 
@@ -104,6 +150,7 @@ public class MainActivity extends AppCompatActivity{
                             Boolean logined = (Boolean) sharedPreferencesHelper.get(SharedPref.LOGINED,false);
                             if(!logined){
                                 mBottomTabBar.setCurrentTab(0);
+                                App.mInfo.put(AppInfo.TAB_INDEX,1);
                                 Intent intent = new Intent(MainActivity.this,SignInByCodeActivity.class);
                                 startActivity(intent);
                             }
@@ -117,6 +164,11 @@ public class MainActivity extends AppCompatActivity{
         }
         mBottomTabBar.setCurrentTab(tabIndex);
         App.mInfo.put(AppInfo.TAB_INDEX,null);
+    }
+
+    public void setProgressBar(int progress){
+        prog_tv.setText(progress + "%");
+        prog_pb.setProgress(progress);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -136,7 +188,8 @@ public class MainActivity extends AppCompatActivity{
 
     void handleAppUpdate(){
         if(appVersionRes != null){
-            initNotification();
+            main_prog.setVisibility(View.VISIBLE);
+            main_prog.setOnClickListener(null);
             downFile(appVersionRes.getDownloadUrl());
 //            downFile("http://a8.pc6.com/ysx7/zhangyue780.apk");
             versionDialog.dismiss();
@@ -146,45 +199,63 @@ public class MainActivity extends AppCompatActivity{
 
     private void initNotification() {
         notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        builder = new NotificationCompat.Builder(this);
+        builder = new Notification.Builder(this);
         builder.setContentTitle("正在更新...") //设置通知标题
-                .setSmallIcon(R.mipmap.logo)
-                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.logo)) //设置通知的大图标
+                .setSmallIcon(R.mipmap.icon)
+                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.icon)) //设置通知的大图标
                 .setDefaults(Notification.DEFAULT_LIGHTS) //设置通知的提醒方式： 呼吸灯
-                .setPriority(NotificationCompat.PRIORITY_MAX) //设置通知的优先级：最大
+                .setPriority(Notification.PRIORITY_MAX) //设置通知的优先级：最大
                 .setAutoCancel(false)//设置通知被点击一次是否自动取消
                 .setContentText("下载进度:" + "0%")
-                .setProgress(100, 0, false);
+                .setProgress(100, 0, false)
+                .setWhen(System.currentTimeMillis()).setNumber(1);
         notification = builder.build();//构建通知对象
+        notificationManager.notify(1, notification);
     }
 
     public void downFile(String url) {
-        String fileDir = this.getFilesDir().getAbsolutePath() + "/shands/";
+        String fileDir = "";
+        if(Build.VERSION.SDK_INT <= Build.VERSION_CODES.M){//Android 6.0
+            fileDir = AppInfo.RES_DIR;
+        }else{
+            fileDir = this.getFilesDir().getAbsolutePath() + "/shands/";
+        }
+
         try{
             DownloadUtil.get().download(url, fileDir, apkName, new DownloadUtil.OnDownloadListener() {
                 @Override
                 public void onDownloadSuccess(File file) {
                     Log.e("update", "onSuccess: 下载完成" + file.getPath());
-                    notificationManager.cancel(1);
-                    builder.setContentTitle("下载完成")
-                            .setContentText("点击安装")
-                            .setAutoCancel(true);//设置通知被点击一次是否自动取消
-                    builder.setProgress(100, 100, false);
-                    notification = builder.setContentIntent(getNotifyIntent(file)).build();
-                    notificationManager.notify(2, notification);
-
+                    if(isBackRunning){
+                        notificationManager.cancel(1);
+                        builder.setContentTitle("下载完成")
+                                .setContentText("点击安装")
+                                .setAutoCancel(true);//设置通知被点击一次是否自动取消
+                        builder.setProgress(100, 100, false);
+                        notification = builder.setContentIntent(getNotifyIntent(file)).build();
+                        notificationManager.notify(2, notification);
+                    }else{
+                        handler.sendEmptyMessage(2);
+                    }
                     //打开apk
                     startActivity(getInstallIntent(file));
-
-                    Toast.makeText(MainActivity.this,"请在通知栏点击下载",Toast.LENGTH_LONG).show();
                 }
 
                 @Override
                 public void onDownloading(int progress) {
-                    builder.setProgress(100, progress, false);
-                    builder.setContentText("下载进度:" + progress + "%");
-                    notification = builder.build();
-                    notificationManager.notify(1, notification);
+                    if(isBackRunning){
+                        builder.setProgress(100, progress, false);
+                        builder.setContentText("下载进度:" + progress + "%");
+                        notification = builder.build();
+                        notificationManager.notify(1, notification);
+                    }else{
+                        Message message = new Message();
+                        message.what = 1;
+                        Bundle data = new Bundle();
+                        data.putInt("progress",progress);
+                        message.setData(data);
+                        handler.sendMessage(message);
+                    }
                 }
 
                 @Override
@@ -201,13 +272,23 @@ public class MainActivity extends AppCompatActivity{
 
     }
 
+    public String getMIMEType(File var0) {
+        String var1 = "";
+        String var2 = var0.getName();
+        String var3 = var2.substring(var2.lastIndexOf(".") + 1, var2.length()).toLowerCase();
+        var1 = MimeTypeMap.getSingleton().getMimeTypeFromExtension(var3);
+        return var1;
+    }
+
     private PendingIntent getNotifyIntent(File file) {
         Intent intent = new Intent(Intent.ACTION_VIEW);
         if (file.exists()){
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {//Android 7.0
                 intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 intent.setDataAndType(FileProvider.getUriForFile(this, AppInfo.FILE_AUTHORITY, file), AppInfo.INTENT_TYPE_OPEN_APK);
-            } else {////Android 6.0及以下
+            }else if(Build.VERSION.SDK_INT == Build.VERSION_CODES.M){//Android 6.0
+                intent.setDataAndType(Uri.fromFile(file), getMIMEType(file));
+            } else {////Android 6.0以下
                 intent.setDataAndType(Uri.fromFile(file), AppInfo.INTENT_TYPE_OPEN_APK);
             }
         }
@@ -220,7 +301,9 @@ public class MainActivity extends AppCompatActivity{
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {//Android 7.0
                 intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 intent.setDataAndType(FileProvider.getUriForFile(this, AppInfo.FILE_AUTHORITY, file), AppInfo.INTENT_TYPE_OPEN_APK);
-            } else {////Android 6.0及以下
+            } else if(Build.VERSION.SDK_INT == Build.VERSION_CODES.M){//Android 6.0
+                intent.setDataAndType(Uri.fromFile(file), getMIMEType(file));
+            } else {////Android 6.0以下
                 intent.setDataAndType(Uri.fromFile(file), AppInfo.INTENT_TYPE_OPEN_APK);
             }
         }
@@ -248,7 +331,7 @@ public class MainActivity extends AppCompatActivity{
                                 handleAppUpdate();
                             }
                         }else{
-                            if(appVersionRes.getIfForcedUpdate().equals("1")){
+                            if(appVersionRes.getIfForcedUpdate() == 1){
                                 Toast.makeText(MainActivity.this,"必须升级新版本，app才能正常使用！",Toast.LENGTH_LONG).show();
                             }else{
                                 versionDialog.dismiss();

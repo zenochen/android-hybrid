@@ -48,7 +48,7 @@ public class Html5WebView extends WebView {
         mWebSettings.setJavaScriptEnabled(true);
         mWebSettings.setJavaScriptCanOpenWindowsAutomatically(true);
         mWebSettings.setSupportMultipleWindows(true);
-        mWebSettings.setBlockNetworkImage(false);
+        mWebSettings.setBlockNetworkImage(true);
         if(Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP){
             mWebSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
         }

@@ -96,6 +96,8 @@ public class SignInActivity extends AppCompatActivity implements View.OnClickLis
                             intent.putExtra("tabIndex",3);
                         }
                         startActivity(intent);
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(SignInActivity.this);
                     }else{
                         Toast.makeText(SignInActivity.this,message,Toast.LENGTH_LONG).show();
                     }

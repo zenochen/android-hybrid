@@ -53,6 +53,16 @@ public class Const {
     public static final String APP_VERSION = ROOT_SERVER + "/version/getVersion";
     //首页图标
     public static final String HOME_PAGE_ICON = ROOT_SERVER +  "/homePage/findHomePageList";
+    //订单支付
+    public static final String ORDER_PAY = ROOT_SERVER +  "/trade/pay";
+    //订单详情
+    public static final String TRADE_DETAIL = ROOT_SERVER +  "/trade/detail";
+    //取消订单
+    public static final String TRADE_CANCEL = ROOT_SERVER +  "/trade/cancel";
+    //删除订单
+    public static final String TRADE_DEL = ROOT_SERVER +  "/trade/del";
+    //创建卡值支付订单
+    public static final String CHARGE_TRADE = ROOT_SERVER + "/rechargeLog/buildReChargeTrade";
     //获取版本号的参数
     public static final String SOURCE_TYPE = "ANDROID";
     //手机参数
@@ -61,42 +71,58 @@ public class Const {
     public static final String MESSAGE_CONTENT_TYPE_EMAIL = "EMAIL_EDIT_EMAIL";
 
     //-----------------HTML5跳转链接--------------------------
-    public static final String APP_ROOT = "http://test-app-xgw.shands.cn/";//10.10.122.93:8080/
-    public static final String MIDDLE = "middle";
+    public static final String APP_ROOT = "http://test-app-xgw.shands.cn";
+    //地址拼接
+    public static final String FREEMARK_PATH = "http://test-server-api-gateway.shands.cn/gw-freemarket/api/free/redirectUrl?";
+    //中间页
+    public static final String MIDDLE = "/middle";
     //搜索酒店
-    public static final String SEARCH_HOTEL = "searchhome";
+    public static final String SEARCH_HOTEL = "/searchhome";
     //种草
-    public static final String SOCIAL_PLANT = "community";
+    public static final String SOCIAL_PLANT = "/community";
     //会员特权
-    public static final String MEMBER = "member";
+    public static final String MEMBER = "/member";
     //我的余额
-    public static final String MY_MONEY = "money";
+    public static final String MY_MONEY = "/money";
     //我的积分
-    public static final String MY_POINTS = "pointsdetail";
+    public static final String MY_POINTS = "/pointsdetail";
     //我的优惠券
-    public static final String MY_COUPONS = "coupons";
+    public static final String MY_COUPONS = "/coupons";
     //每日签到
-    public static final String DAILY_SIGNIN = "points";
+    public static final String DAILY_SIGNIN = "/points";
     //积分抽奖
-    public static final String LUCKY_DRAW = "luckyDraw";
+    public static final String LUCKY_DRAW = "/luckyDraw";
     //领取礼包
-    public static final String GIFT_RECEIVE = "giftReceive";
+    public static final String GIFT_RECEIVE = "/giftReceive";
     //我的订单
-    public static final String MY_ORDER = "order";
+    public static final String MY_ORDER = "/order";
     //我的评论
-    public static final String MY_COMMENT = "personageComment";
+    public static final String MY_COMMENT = "/personageComment";
     //我的收藏
-    public static final String MY_COLLECTION = "collection";
+    public static final String MY_COLLECTION = "/collection";
     //我的消费
-    public static final String MY_CONSUME = "conlist";
+    public static final String MY_CONSUME = "/conlist";
     //积分商城
     public static final String POINT_STORE = "http://store.kaiyuanhotels.com/home";
+    //联名卡
+    public static final String UNION_CARD = "http://static.shands.cn/gw/activity/member/home.html";
+    //礼品卡
+    public static final String GIFT_CARD = "http://www.kaiyuanhotels.com.cn/giftCard/index.htm";
     //常客信息
-    public static final String PASSAGE_INFO = "user";
+    public static final String PASSAGE_INFO = "/user";
     //我的发票
-    public static final String MY_INVOICE = "invoice";
+    public static final String MY_INVOICE = "/invoice";
     //关于我们
-    public static final String ABOUT_US = "setup/aboutky";
+    public static final String ABOUT_US = "/aboutky";
     //商祺会章程
-    public static final String CLUB_RULES = "setup/kyrule";
+    public static final String CLUB_RULES = "/kyrule";
+    //订单详情
+    public static final String ORDER_DETAIL = "/orderdetail?id=";
+    //支付
+    public static final String PAY = "/pay?id=";
+    //评论
+    public static final String PUBLISH_COMMENT = "/publishComment?id=";
+    //查看评论
+    public static final String SHOW_COMMENT = "/personageComment";
+
 }

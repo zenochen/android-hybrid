@@ -20,19 +20,12 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.NewCenturyHotels.NewCentury.App;
 import com.NewCenturyHotels.NewCentury.R;
-import com.NewCenturyHotels.NewCentury.cons.AppInfo;
 import com.NewCenturyHotels.NewCentury.cons.CheckCodeTypeEnum;
 import com.NewCenturyHotels.NewCentury.cons.Const;
-import com.NewCenturyHotels.NewCentury.cons.SharedPref;
-import com.NewCenturyHotels.NewCentury.req.ChangeMobileEmailReq;
-import com.NewCenturyHotels.NewCentury.req.SendLoginedCheckReq;
 import com.NewCenturyHotels.NewCentury.req.SendMobileCheckReq;
-import com.NewCenturyHotels.NewCentury.req.VerifyCheckLoginedReq;
 import com.NewCenturyHotels.NewCentury.req.VerifyCheckReq;
 import com.NewCenturyHotels.NewCentury.util.HttpHelper;
-import com.NewCenturyHotels.NewCentury.util.SharedPreferencesHelper;
 import com.NewCenturyHotels.NewCentury.util.StatusBarUtils;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -126,6 +119,8 @@ public class SetPwdAuthCodeActivity extends SwipeBackActivity implements View.On
                         JsonObject data = jo.getAsJsonObject("data");
                         checkCodeToken = data.get("checkCodeToken").getAsString();
                         often = data.get("often").getAsInt();
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(SetPwdAuthCodeActivity.this);
                     }else{
                         Toast.makeText(SetPwdAuthCodeActivity.this,message,Toast.LENGTH_SHORT).show();
                     }
@@ -143,6 +138,8 @@ public class SetPwdAuthCodeActivity extends SwipeBackActivity implements View.On
                         intent.putExtra("validateToken",validateToken);
                         intent.putExtra("blackBox",blackBox);
                         startActivity(intent);
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(SetPwdAuthCodeActivity.this);
                     }else{
                         Toast.makeText(SetPwdAuthCodeActivity.this,message,Toast.LENGTH_LONG).show();
                     }

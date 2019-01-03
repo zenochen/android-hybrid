@@ -49,8 +49,11 @@ public class PersonalActivity extends SwipeBackActivity implements View.OnClickL
     TextView tv_card_no;
     TextView tv_mobile;
     TextView tv_email;
+    TextView tv_process;
 
     LinearLayout statusBar;
+
+    int finishProcess;
 
     Boolean isMobileModify = false;
     Boolean isEmailModify = false;
@@ -88,6 +91,22 @@ public class PersonalActivity extends SwipeBackActivity implements View.OnClickL
                             tv_card_no.setText(person.getIdentityNO());
                             tv_mobile.setText(person.getMobile());
                             tv_email.setText(person.getEmail());
+                            if(!person.getNameCN().isEmpty()){
+                                finishProcess += 20;
+                            }
+                            if(!person.getSex().isEmpty()){
+                                finishProcess += 20;
+                            }
+                            if(!person.getBirthday().isEmpty()){
+                                finishProcess += 20;
+                            }
+                            if(!person.getIdName().isEmpty()){
+                                finishProcess += 20;
+                            }
+                            if(!person.getIdentityNO().isEmpty()){
+                                finishProcess += 20;
+                            }
+                            tv_process.setText(finishProcess + "%");
                         }
 
                         JsonObject jsonObject = jo.getAsJsonObject("data");
@@ -98,6 +117,8 @@ public class PersonalActivity extends SwipeBackActivity implements View.OnClickL
 
                         isMobileModify = jsonObject.get("isMobileModify").getAsBoolean();
                         isEmailModify = jsonObject.get("isEmailModify").getAsBoolean();
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(PersonalActivity.this);
                     }else{
                         Toast.makeText(PersonalActivity.this,message,Toast.LENGTH_SHORT).show();
                     }
@@ -134,6 +155,7 @@ public class PersonalActivity extends SwipeBackActivity implements View.OnClickL
         tv_card_no = (TextView) findViewById(R.id.pers_tv_cardinfo);
         tv_mobile = (TextView) findViewById(R.id.pers_tv_mobile);
         tv_email = (TextView) findViewById(R.id.pers_tv_email);
+        tv_process = (TextView) findViewById(R.id.pers_tv_process);
 
         //调整通知栏高度
         statusBar = (LinearLayout) findViewById(R.id.pers_status_bar);
@@ -150,6 +172,10 @@ public class PersonalActivity extends SwipeBackActivity implements View.OnClickL
         re_email.setOnClickListener(this);
         back.setOnClickListener(this);
 
+        initPersonInfo();
+    }
+
+    void initPersonInfo(){
         startLoading();
         new Thread(){
             @Override
@@ -187,6 +213,13 @@ public class PersonalActivity extends SwipeBackActivity implements View.OnClickL
         loading.setVisibility(View.GONE);
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == 1){
+            initPersonInfo();
+        }
+    }
 
     @Override
     public void onClick(View view) {
@@ -207,7 +240,7 @@ public class PersonalActivity extends SwipeBackActivity implements View.OnClickL
                     intent.putExtra("birthday",person.getBirthday());
                     intent.putExtra("idType",person.getIdType());
                     intent.putExtra("idNo",person.getIdentityNO());
-                    startActivity(intent);
+                    startActivityForResult(intent,1);
                 }
                 break;
             case R.id.pers_mobile:

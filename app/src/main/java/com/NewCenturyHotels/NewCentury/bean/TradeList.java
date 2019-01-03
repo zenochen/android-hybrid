@@ -21,6 +21,7 @@ public class TradeList {
     private String tradeStateEnum;//订单状态
     private String tradeStateName;//订单状态名称
     private OrderOperates[] orderOperates;//后续功能
+    private String rateCode;//积分
 
     public class OrderOperates{
         private String api;//api地址
@@ -59,6 +60,14 @@ public class TradeList {
         public void setTradePayWayList(String tradePayWayList) {
             this.tradePayWayList = tradePayWayList;
         }
+    }
+
+    public String getRateCode() {
+        return rateCode;
+    }
+
+    public void setRateCode(String rateCode) {
+        this.rateCode = rateCode;
     }
 
     public OrderOperates[] getOrderOperates() {

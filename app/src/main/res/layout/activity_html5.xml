@@ -16,6 +16,41 @@
             android:layout_height="wrap_content"
             android:background="@color/statusbar">
         </LinearLayout>
+        <RelativeLayout
+            android:id="@+id/html5_title_layer"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:visibility="gone"
+            android:background="#fff">
+            <TextView
+                android:id="@+id/html5_title"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="50dp"
+                android:layout_marginRight="50dp"
+                android:gravity="center"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:text=""
+                android:textColor="#000"
+                android:textSize="18dp"/>
+            <RelativeLayout
+                android:id="@+id/html5_close"
+                android:layout_width="50dp"
+                android:layout_height="44dp">
+                <ImageView
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:layout_centerVertical="true"
+                    android:layout_marginLeft="10dp"
+                    android:background="@drawable/close"/>
+            </RelativeLayout>
+            <RelativeLayout
+                android:background="#CCC"
+                android:layout_alignParentBottom="true"
+                android:layout_width="match_parent"
+                android:layout_height="0.3dp"></RelativeLayout>
+        </RelativeLayout>
         <LinearLayout
             android:id="@+id/html5_linear"
             android:orientation="horizontal"

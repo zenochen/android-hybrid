@@ -206,3 +206,7 @@
 -keep class sun.misc.Unsafe { *; }
 -keep class com.NewCenturyHotels.NewCentury.req.** { *; }
 -keep class com.NewCenturyHotels.NewCentury.bean.** { *; }
+#webview图片上传
+-keepclassmembers class * extends android.webkit.WebChromeClient{
+    public void openFileChooser(...);
+}

@@ -64,6 +64,7 @@ public class App extends Application {
                         Gson gson = new Gson();
                         AppVersionRes res = gson.fromJson(data,AppVersionRes.class);
                         mInfo.put(AppInfo.APP_VERSION,res);
+                        sharedPreferencesHelper.put(SharedPref.APP_VERSION,gson.toJson(res));
 
                         //获取图片路径
                         AppVersionRes.ImgData imgData = res.getImgData();
@@ -276,7 +277,6 @@ public class App extends Application {
 
     {
         PlatformConfig.setWeixin("wxd1edb80decbaf700", "3baf1193c85774b3fd9d18447d76cab0");
-        PlatformConfig.setSinaWeibo("3921700954", "04b48b094faeb16683c32669824ebdad", "http://sns.whalecloud.com");
         PlatformConfig.setQQZone("101511394", "bb7e28b22ce562a8b94d210a49f9d7c8");
     }
 }

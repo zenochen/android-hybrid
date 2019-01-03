@@ -83,6 +83,8 @@ public class SignUpAppendActivity extends SwipeBackActivity implements View.OnCl
                         Toast.makeText(SignUpAppendActivity.this,"注册成功",Toast.LENGTH_LONG).show();
                         intent = new Intent(SignUpAppendActivity.this,MainActivity.class);
                         startActivity(intent);
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(SignUpAppendActivity.this);
                     }else{
                         Toast.makeText(SignUpAppendActivity.this,message,Toast.LENGTH_LONG).show();
                     }

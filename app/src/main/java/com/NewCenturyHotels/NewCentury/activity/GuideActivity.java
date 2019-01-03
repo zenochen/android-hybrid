@@ -12,6 +12,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.NewCenturyHotels.NewCentury.R;
+import com.NewCenturyHotels.NewCentury.cons.SharedPref;
+import com.NewCenturyHotels.NewCentury.util.SharedPreferencesHelper;
 import com.NewCenturyHotels.NewCentury.util.StatusBarUtils;
 
 import java.util.ArrayList;
@@ -107,6 +109,8 @@ public class GuideActivity extends AppCompatActivity implements View.OnClickList
     @Override
     public void onClick(View view) {
         if(view.getId() == R.id.guide3_enter){
+            SharedPreferencesHelper sharedPreferencesHelper = new SharedPreferencesHelper(GuideActivity.this);
+            sharedPreferencesHelper.put(SharedPref.IS_FIRST,false);
             Intent intent = new Intent(GuideActivity.this,MainActivity.class);
             startActivity(intent);
             finish();

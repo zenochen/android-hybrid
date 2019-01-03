@@ -38,6 +38,7 @@ public class SettingsActivity extends SwipeBackActivity implements View.OnClickL
     TextView currentVersion;
     Intent intent;
     LinearLayout statusBar;
+    SharedPreferencesHelper sharedPreferencesHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +47,14 @@ public class SettingsActivity extends SwipeBackActivity implements View.OnClickL
         StatusBarUtils.with(this).init();
         initComponent();
         initEvent();
+
+        //是否登录
+        sharedPreferencesHelper = new SharedPreferencesHelper(SettingsActivity.this);
+        if(!(Boolean) sharedPreferencesHelper.get(SharedPref.LOGINED,false)){
+            setting_logout.setVisibility(View.GONE);
+        }else{
+            setting_logout.setVisibility(View.VISIBLE);
+        }
     }
 
     void initComponent(){
@@ -88,11 +97,13 @@ public class SettingsActivity extends SwipeBackActivity implements View.OnClickL
             case R.id.setting_tv_club:
                 intent=new Intent(SettingsActivity.this, Html5Activity.class);
                 intent.putExtra("url", Const.ABOUT_US);
+                intent.putExtra("needNotLogin",true);
                 startActivity(intent);
                 break;
             case R.id.setting_tv_rules:
                 intent=new Intent(SettingsActivity.this, Html5Activity.class);
                 intent.putExtra("url", Const.CLUB_RULES);
+                intent.putExtra("needNotLogin",true);
                 startActivity(intent);
                 break;
             case R.id.setting_tv_clear:
@@ -121,7 +132,7 @@ public class SettingsActivity extends SwipeBackActivity implements View.OnClickL
                     public void onClick(Dialog dialog, boolean confirm) {
                         if(confirm){
                             dialog.dismiss();
-                            SharedPreferencesHelper sharedPreferencesHelper = new SharedPreferencesHelper(SettingsActivity.this);
+
                             sharedPreferencesHelper.put(SharedPref.LOGINED,false);
                             sharedPreferencesHelper.put(SharedPref.HTML5_LOGINED,false);
                             sharedPreferencesHelper.put(SharedPref.TOKEN,"");

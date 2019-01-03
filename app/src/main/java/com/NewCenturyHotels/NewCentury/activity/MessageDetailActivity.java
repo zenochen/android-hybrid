@@ -65,6 +65,8 @@ public class MessageDetailActivity extends SwipeBackActivity implements View.OnC
                         msgdet_pub.setVisibility(View.VISIBLE);
 
                         Toast.makeText(MessageDetailActivity.this,"加载成功",Toast.LENGTH_LONG).show();
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(MessageDetailActivity.this);
                     }else{
                         Toast.makeText(MessageDetailActivity.this,message,Toast.LENGTH_LONG).show();
                     }

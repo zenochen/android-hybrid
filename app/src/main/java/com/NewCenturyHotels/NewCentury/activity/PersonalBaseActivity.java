@@ -19,7 +19,6 @@ import android.widget.Toast;
 
 import com.NewCenturyHotels.NewCentury.R;
 import com.NewCenturyHotels.NewCentury.bean.Dict;
-import com.NewCenturyHotels.NewCentury.bean.UserCenter;
 import com.NewCenturyHotels.NewCentury.cons.Const;
 import com.NewCenturyHotels.NewCentury.req.ChangeUserInfoReq;
 import com.NewCenturyHotels.NewCentury.req.DictListReq;
@@ -102,6 +101,8 @@ public class PersonalBaseActivity extends SwipeBackActivity implements View.OnCl
                     if(code == 200){
                         Toast.makeText(PersonalBaseActivity.this,message,Toast.LENGTH_LONG).show();
                         finish();
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(PersonalBaseActivity.this);
                     }else{
                         Toast.makeText(PersonalBaseActivity.this,message,Toast.LENGTH_LONG).show();
                     }
@@ -129,6 +130,8 @@ public class PersonalBaseActivity extends SwipeBackActivity implements View.OnCl
                                 pbase_sp_cardtype.setSelection(j);
                             }
                         }
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(PersonalBaseActivity.this);
                     }else{
                         Toast.makeText(PersonalBaseActivity.this,message,Toast.LENGTH_LONG).show();
                     }

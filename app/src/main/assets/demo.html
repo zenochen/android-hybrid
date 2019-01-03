@@ -17,15 +17,15 @@
         }
 
         function alipay(){
-            window.android.alipay();
+            window.android.alipay("M5453831842154");
         }
 
         function wxpay(){
-            window.android.wxpay();
+            window.android.wxpay("M5453831842154");
         }
 
         function unionpay(){
-            window.android.unionpay();
+            window.android.unionpay("M5453831842154");
         }
 
         function log(msg){
@@ -82,6 +82,10 @@
             window.android.showMap("开元名都大酒店");
         }
 
+        function shareClick(a,b,c,d){
+            window.android.shareClick(a,b,c,d);
+        }
+
     </script>
 
 </head>
@@ -95,6 +99,7 @@
 <input type="button" value="打电话" onclick="callPhone()"/><br/>
 <input type="button" value="读取渠道" onclick="getChannel()"/>
 <input type="button" value="分享微信朋友" onclick="shareWx('你好')"/><br/>
+<input type="button" value="分享按钮" onclick="shareClick('你好','世界','http://test-app-xgw.shands.cn/hoteldetail?id=12','http://upload.shands.cn/demo/XGW/1812132018101738.jpg')"/><br/>
 <input type="button" value="分享微信朋友圈" onclick="shareWxTimeline('你好')"/>
 <input type="button" value="分享QQ" onclick="shareQQ('你好')"/><br/>
 <input type="button" value="分享新浪微博" onclick="shareWeibo('你好')"/>

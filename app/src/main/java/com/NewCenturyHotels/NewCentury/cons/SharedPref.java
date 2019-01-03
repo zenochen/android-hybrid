@@ -4,12 +4,15 @@ package com.NewCenturyHotels.NewCentury.cons;
  * SharedPreference的key值
  */
 public class SharedPref {
-    public static final String APP_VERSION = "appVersion";//app版本
+    public static final String APP_VERSION = "appVersion";//app初始化信息
+    public static final String AD_PIC_INDEX = "adPicIndex";//广告页图片索引
     public static final String LOGINED = "logined";//是否登录
     public static final String HTML5_LOGINED = "html5Logined";//html5同步登录
+    public static final String TRADE_NO = "tradeNo";//html5同步登录
     public static final String TOKEN = "token";//登录获取的token
     public static final String API_V = "apiv";//登录获取的token
     public static final String IS_FIRST = "isFirst";//是否第一次进入
+    public static final String FIRST_SHOW = "firstShow";//第一次展示图片
     public static final String APP_AD = "appAd";//广告页图片
     public static final String HOME_IMAGES = "homeImages";//首页轮播图
     public static final String USER_IMAGE = "userImages";//个人页图片

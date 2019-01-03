@@ -123,6 +123,8 @@ public class ModStep1AuthCodeActivity extends SwipeBackActivity implements View.
                         JsonObject data = jo.getAsJsonObject("data");
                         checkCodeToken = data.get("checkCodeToken").getAsString();
                         often = data.get("often").getAsInt();
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(ModStep1AuthCodeActivity.this);
                     }else{
                         Toast.makeText(ModStep1AuthCodeActivity.this,message,Toast.LENGTH_SHORT).show();
                     }
@@ -142,6 +144,8 @@ public class ModStep1AuthCodeActivity extends SwipeBackActivity implements View.
                         intent.putExtra("oldCheckCodeToken",checkCodeToken);
                         intent.putExtra("oldCheckCode",checkCode);
                         startActivity(intent);
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(ModStep1AuthCodeActivity.this);
                     }else{
                         Toast.makeText(ModStep1AuthCodeActivity.this,message,Toast.LENGTH_LONG).show();
                     }

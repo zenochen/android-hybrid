@@ -1,5 +1,7 @@
 package com.NewCenturyHotels.NewCentury.fragment;
 
+import android.app.Dialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -15,11 +17,16 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.NewCenturyHotels.NewCentury.R;
+import com.NewCenturyHotels.NewCentury.activity.Html5Activity;
 import com.NewCenturyHotels.NewCentury.adapter.OrderAdapter;
 import com.NewCenturyHotels.NewCentury.bean.TradeList;
 import com.NewCenturyHotels.NewCentury.cons.Const;
+import com.NewCenturyHotels.NewCentury.cons.SharedPref;
+import com.NewCenturyHotels.NewCentury.req.TradeHandleReq;
 import com.NewCenturyHotels.NewCentury.req.TradeReq;
 import com.NewCenturyHotels.NewCentury.util.HttpHelper;
+import com.NewCenturyHotels.NewCentury.util.SharedPreferencesHelper;
+import com.NewCenturyHotels.NewCentury.view.CommomDialog;
 import com.NewCenturyHotels.NewCentury.view.CommonRefreshFooter;
 import com.NewCenturyHotels.NewCentury.view.CommonRefreshHeader;
 import com.google.gson.Gson;
@@ -31,6 +38,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import in.srain.cube.views.ptr.PtrDefaultHandler;
 import in.srain.cube.views.ptr.PtrDefaultHandler2;
 import in.srain.cube.views.ptr.PtrFrameLayout;
 import okhttp3.Call;
@@ -40,13 +48,13 @@ import okhttp3.Response;
 public class Fragment3 extends Fragment {
 
     ListView order_lv;
-    RelativeLayout layer;
     RelativeLayout loading;
 
     OrderAdapter orderAdapter;
     List<TradeList> orders;
 
     private PtrFrameLayout ptrFrameLayout;
+    private PtrFrameLayout ptrFrameLayout0;
 
     View view;
 
@@ -58,14 +66,17 @@ public class Fragment3 extends Fragment {
 
 
     final static String TAG = Fragment3.class.getName();
+    final int GET_BACK = 1;
+    String tradeNo = "";
 
     Handler handler = new Handler(){
         @Override
         public void handleMessage(Message msg) {
             try{
-                if(msg.what == 1){//下拉刷新数据
+                if(msg.what == 1 || msg.what == 2){
                     stopLoading();
-
+                }
+                if(msg.what == 1){//下拉刷新数据
                     String ret = msg.getData().getString("ret");
                     JsonParser parser = new JsonParser();
                     JsonObject jo = (JsonObject) parser.parse(ret);
@@ -84,21 +95,28 @@ public class Fragment3 extends Fragment {
                         }
 
                         if(orders.size() == 0){
-                            layer.setVisibility(View.VISIBLE);
+                            ptrFrameLayout.setVisibility(View.GONE);
+                            ptrFrameLayout0.setVisibility(View.VISIBLE);
                         }else{
-                            layer.setVisibility(View.GONE);
+                            ptrFrameLayout.setVisibility(View.VISIBLE);
+                            ptrFrameLayout0.setVisibility(View.GONE);
                         }
 
                         orderAdapter.notifyDataSetChanged();
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(getActivity());
                     }else{
-                        layer.setVisibility(View.VISIBLE);
+                        ptrFrameLayout0.setVisibility(View.VISIBLE);
                         Toast.makeText(getContext(),message,Toast.LENGTH_LONG).show();
                     }
 
                     if(ptrFrameLayout.isRefreshing()){
                         ptrFrameLayout.refreshComplete();
                     }
-                }else if(msg.what == 2){
+                    if(ptrFrameLayout0.isRefreshing()){
+                        ptrFrameLayout0.refreshComplete();
+                    }
+                }else if(msg.what == 2){//上拉加载
                     String ret = msg.getData().getString("ret");
                     JsonParser parser = new JsonParser();
                     JsonObject jo = (JsonObject) parser.parse(ret);
@@ -116,6 +134,8 @@ public class Fragment3 extends Fragment {
                         }
 
                         orderAdapter.notifyDataSetChanged();
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(getActivity());
                     }else{
                         Toast.makeText(getContext(),message,Toast.LENGTH_LONG).show();
                     }
@@ -123,6 +143,69 @@ public class Fragment3 extends Fragment {
                     if(ptrFrameLayout.isRefreshing()){
                         ptrFrameLayout.refreshComplete();
                     }
+                }else if(msg.what == 3){//订单取消
+                    String ret = msg.getData().getString("ret");
+                    JsonParser parser = new JsonParser();
+                    JsonObject jo = (JsonObject) parser.parse(ret);
+                    int code = jo.get("code").getAsInt();
+                    String message = jo.get("msg").getAsString();
+                    if(code == 200){
+                        initData();
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(getActivity());
+                    }else{
+                        stopLoading();
+                        Toast.makeText(getContext(),message,Toast.LENGTH_LONG).show();
+                    }
+                }else if(msg.what == 4){//订单删除
+                    String ret = msg.getData().getString("ret");
+                    JsonParser parser = new JsonParser();
+                    JsonObject jo = (JsonObject) parser.parse(ret);
+                    int code = jo.get("code").getAsInt();
+                    String message = jo.get("msg").getAsString();
+                    if(code == 200){
+                        initData();
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(getActivity());
+                    }else{
+                        stopLoading();
+                        Toast.makeText(getContext(),message,Toast.LENGTH_LONG).show();
+                    }
+                }else if(msg.what == 5){//支付方式
+                    stopLoading();
+                    String ret = msg.getData().getString("ret");
+                    JsonParser parser = new JsonParser();
+                    JsonObject jo = (JsonObject) parser.parse(ret);
+                    int code = jo.get("code").getAsInt();
+                    String message = jo.get("msg").getAsString();
+                    if(code == 200){
+                        JsonObject data = jo.getAsJsonObject("data");
+                        JsonArray oper = data.getAsJsonArray("orderOperates");
+                        String payWays = "";
+                        for(int i = 0;i < oper.size();i++){
+                            JsonObject jsonObject = oper.get(i).getAsJsonObject();
+                            if(jsonObject.get("api").getAsString().contains("pay")){
+                                JsonArray array = jsonObject.getAsJsonArray("tradePayWayList");
+                                for(int j = 0;j < array.size();j++){
+                                    payWays = payWays + array.get(j).getAsString() + ",";
+                                }
+
+                                payWays = payWays.substring(0,payWays.length() - 1);
+                                break;
+                            }
+                        }
+                        Intent intent=new Intent(getContext(), Html5Activity.class);
+                        String url = Const.PAY + tradeNo;
+                        intent.putExtra("url",url);
+                        intent.putExtra("tradeNo",tradeNo);
+                        intent.putExtra("payWays",payWays);
+                        startActivityForResult(intent,GET_BACK);
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(getActivity());
+                    }else{
+                        Toast.makeText(getContext(),message,Toast.LENGTH_LONG).show();
+                    }
+
                 }
             }catch (Exception e){
                 Log.e(TAG,e.getMessage());
@@ -157,7 +240,7 @@ public class Fragment3 extends Fragment {
 
         order_lv = view.findViewById(R.id.order_lv_3);
         ptrFrameLayout = (PtrFrameLayout) view.findViewById(R.id.ptr_frame_layout3);
-        layer = (RelativeLayout) view.findViewById(R.id.frg3_layer);
+        ptrFrameLayout0 = view.findViewById(R.id.ptr_frame_layout30);
         loading = (RelativeLayout) view.findViewById(R.id.frg3_loading);
 
         //下拉刷新
@@ -204,6 +287,27 @@ public class Fragment3 extends Fragment {
         //设置模式
         //BOTH：下拉刷新，下拉加载
         ptrFrameLayout.setMode(PtrFrameLayout.Mode.BOTH);
+
+        //下拉刷新
+        CommonRefreshHeader commonRefreshHeader0 = new CommonRefreshHeader(getContext());
+        ptrFrameLayout0.setHeaderView(commonRefreshHeader0);
+        ptrFrameLayout0.addPtrUIHandler(commonRefreshHeader0);
+        //监听
+        ptrFrameLayout0.setPtrHandler(new PtrDefaultHandler() {
+
+            //下拉刷新监听
+            @Override
+            public void onRefreshBegin(PtrFrameLayout frame) {
+                ptrFrameLayout.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        initData();
+                    }
+                },1000);
+
+            }
+        });
+        ptrFrameLayout0.setMode(PtrFrameLayout.Mode.REFRESH);
     }
 
     void initOrderData(){
@@ -215,7 +319,10 @@ public class Fragment3 extends Fragment {
         order_lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Toast.makeText(getContext(), "Click item" + i, Toast.LENGTH_SHORT).show();
+                Intent intent=new Intent(getContext(), Html5Activity.class);
+                String url = Const.ORDER_DETAIL + orders.get(i).getTradeNo();
+                intent.putExtra("url",url);
+                startActivity(intent);
             }
         });
 
@@ -223,22 +330,127 @@ public class Fragment3 extends Fragment {
         orderAdapter.setOnItemHandleClickListener(new OrderAdapter.onItemHandleListener() {
             @Override
             public void onPayClick(int i) {
-                Toast.makeText(getContext(), "onPayClick item:" + i, Toast.LENGTH_SHORT).show();
+                tradeNo = orders.get(i).getTradeNo();
+                String url = Const.TRADE_DETAIL;
+                TradeHandleReq req = new TradeHandleReq();
+                req.setTradeNo(orders.get(i).getTradeNo());
+                Gson gson = new Gson();
+                String json = gson.toJson(req);
+
+                startLoading();
+
+                HttpHelper.sendOkHttpPost(url, json, new Callback() {
+                    @Override
+                    public void onFailure(Call call, IOException e) {
+                        Log.e(TAG, "onFailure: " + e.getMessage());
+                    }
+
+                    @Override
+                    public void onResponse(Call call, Response response) throws IOException {
+                        String body = response.body().string();
+                        Log.i(TAG, "onResponse: " + body);
+                        Bundle bundle = new Bundle();
+                        bundle.putString("ret",body);
+                        android.os.Message msg = new android.os.Message();
+                        msg.setData(bundle);
+                        msg.what = 5;
+                        handler.sendMessage(msg);
+                    }
+                });
             }
 
             @Override
-            public void onCancelClick(int i) {
-                Toast.makeText(getContext(), "onCancelClick item:" + i, Toast.LENGTH_SHORT).show();
+            public void onCancelClick(final int i) {
+                CommomDialog dialog = new CommomDialog(getContext(), R.style.dialog, "确定取消？", new CommomDialog.OnCloseListener() {
+                    @Override
+                    public void onClick(Dialog dialog, boolean confirm) {
+                        if(confirm){
+                            dialog.dismiss();
+                            String url = Const.TRADE_CANCEL;
+                            TradeHandleReq req = new TradeHandleReq();
+                            req.setTradeNo(orders.get(i).getTradeNo());
+                            Gson gson = new Gson();
+                            String json = gson.toJson(req);
+
+                            startLoading();
+
+                            HttpHelper.sendOkHttpPost(url, json, new Callback() {
+                                @Override
+                                public void onFailure(Call call, IOException e) {
+                                    Log.e(TAG, "onFailure: " + e.getMessage());
+                                }
+
+                                @Override
+                                public void onResponse(Call call, Response response) throws IOException {
+                                    String body = response.body().string();
+                                    Log.i(TAG, "onResponse: " + body);
+                                    Bundle bundle = new Bundle();
+                                    bundle.putString("ret",body);
+                                    android.os.Message msg = new android.os.Message();
+                                    msg.setData(bundle);
+                                    msg.what = 3;
+                                    handler.sendMessage(msg);
+                                }
+                            });
+                        }
+                    }
+                });
+                dialog.show();
             }
 
             @Override
             public void onCommentClick(int i) {
-                Toast.makeText(getContext(), "onCommentClick item:" + i, Toast.LENGTH_SHORT).show();
+                Intent intent=new Intent(getContext(), Html5Activity.class);
+                String url = Const.PUBLISH_COMMENT + orders.get(i).getTradeNo();
+                intent.putExtra("url",url);
+                startActivityForResult(intent,GET_BACK);
             }
 
             @Override
             public void onCommentDetailClick(int i) {
-                Toast.makeText(getContext(), "onCommentDetailClick item:" + i, Toast.LENGTH_SHORT).show();
+                Intent intent=new Intent(getContext(), Html5Activity.class);
+                String url = Const.SHOW_COMMENT;
+                intent.putExtra("url",url);
+                startActivity(intent);
+            }
+
+            @Override
+            public void onDeleteClick(final int i) {
+                CommomDialog dialog = new CommomDialog(getContext(), R.style.dialog, "确定删除？", new CommomDialog.OnCloseListener() {
+                    @Override
+                    public void onClick(Dialog dialog, boolean confirm) {
+                        if(confirm){
+                            dialog.dismiss();
+                            String url = Const.TRADE_DEL;
+                            TradeHandleReq req = new TradeHandleReq();
+                            req.setTradeNo(orders.get(i).getTradeNo());
+                            Gson gson = new Gson();
+                            String json = gson.toJson(req);
+
+                            startLoading();
+
+                            HttpHelper.sendOkHttpPost(url, json, new Callback() {
+                                @Override
+                                public void onFailure(Call call, IOException e) {
+                                    Log.e(TAG, "onFailure: " + e.getMessage());
+                                }
+
+                                @Override
+                                public void onResponse(Call call, Response response) throws IOException {
+                                    String body = response.body().string();
+                                    Log.i(TAG, "onResponse: " + body);
+                                    Bundle bundle = new Bundle();
+                                    bundle.putString("ret",body);
+                                    android.os.Message msg = new android.os.Message();
+                                    msg.setData(bundle);
+                                    msg.what = 4;
+                                    handler.sendMessage(msg);
+                                }
+                            });
+                        }
+                    }
+                });
+                dialog.show();
             }
         });
         startLoading();
@@ -311,5 +523,14 @@ public class Fragment3 extends Fragment {
             }
         };
         tPullMore.start();
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == GET_BACK){
+            startLoading();
+            initData();
+        }
     }
 }

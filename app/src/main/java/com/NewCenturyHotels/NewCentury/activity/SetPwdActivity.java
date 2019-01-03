@@ -101,6 +101,8 @@ public class SetPwdActivity extends SwipeBackActivity implements View.OnClickLis
                         intent = new Intent(SetPwdActivity.this,SignInActivity.class);
                         intent.putExtra("canBack",false);
                         startActivity(intent);
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(SetPwdActivity.this);
                     }else{
                         Toast.makeText(SetPwdActivity.this,message,Toast.LENGTH_LONG).show();
                     }
@@ -122,6 +124,8 @@ public class SetPwdActivity extends SwipeBackActivity implements View.OnClickLis
                             spData.add(map);
                         }
                         cardAdapter.notifyDataSetChanged();
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(SetPwdActivity.this);
                     }else{
                         Toast.makeText(SetPwdActivity.this,message,Toast.LENGTH_LONG).show();
                     }

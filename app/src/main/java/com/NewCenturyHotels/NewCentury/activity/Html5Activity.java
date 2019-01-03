@@ -2,24 +2,19 @@ package com.NewCenturyHotels.NewCentury.activity;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
-import android.content.Context;
-import android.content.DialogInterface;
+import android.annotation.TargetApi;
+import android.app.Activity;
+import android.app.Dialog;
+import android.content.ClipData;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
-import android.provider.MediaStore;
-import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
@@ -27,13 +22,15 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
+import android.webkit.JsResult;
+import android.webkit.ValueCallback;
+import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.NewCenturyHotels.NewCentury.R;
@@ -41,18 +38,19 @@ import com.NewCenturyHotels.NewCentury.bean.AppInitJs;
 import com.NewCenturyHotels.NewCentury.bean.DeviceInfo;
 import com.NewCenturyHotels.NewCentury.bean.GpsInfo;
 import com.NewCenturyHotels.NewCentury.cons.Const;
+import com.NewCenturyHotels.NewCentury.cons.PayWayEnum;
 import com.NewCenturyHotels.NewCentury.cons.SharedPref;
+import com.NewCenturyHotels.NewCentury.req.ChargeReq;
+import com.NewCenturyHotels.NewCentury.req.OrderPayReq;
 import com.NewCenturyHotels.NewCentury.util.ApiSignUtil;
-import com.NewCenturyHotels.NewCentury.util.Base64BitmapUtil;
-import com.NewCenturyHotels.NewCentury.util.BitmapCompressHelper;
 import com.NewCenturyHotels.NewCentury.util.HttpHelper;
-import com.NewCenturyHotels.NewCentury.util.HttpUtil;
 import com.NewCenturyHotels.NewCentury.util.PayResult;
 import com.NewCenturyHotels.NewCentury.util.PayUtil;
 import com.NewCenturyHotels.NewCentury.util.PropertyUtil;
 import com.NewCenturyHotels.NewCentury.util.SharedPreferencesHelper;
 import com.NewCenturyHotels.NewCentury.util.StatusBarUtil;
 import com.NewCenturyHotels.NewCentury.util.StatusBarUtils;
+import com.NewCenturyHotels.NewCentury.view.CommomDialog;
 import com.NewCenturyHotels.NewCentury.view.Html5WebView;
 import com.NewCenturyHotels.NewCentury.wxapi.Constants;
 import com.alipay.sdk.app.PayTask;
@@ -61,6 +59,8 @@ import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
 import com.amap.api.location.AMapLocationListener;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.tencent.mm.opensdk.modelpay.PayReq;
 import com.tencent.mm.opensdk.openapi.IWXAPI;
 import com.tencent.mm.opensdk.openapi.WXAPIFactory;
@@ -68,24 +68,24 @@ import com.umeng.socialize.ShareAction;
 import com.umeng.socialize.UMShareAPI;
 import com.umeng.socialize.UMShareListener;
 import com.umeng.socialize.bean.SHARE_MEDIA;
-import com.umeng.socialize.media.AppInfo;
 import com.umeng.socialize.media.UMImage;
 import com.umeng.socialize.media.UMWeb;
+import com.umeng.socialize.shareboard.ShareBoardConfig;
+import com.umeng.socialize.shareboard.SnsPlatform;
+import com.umeng.socialize.utils.ShareBoardlistener;
 import com.unionpay.UPPayAssistEx;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.HashMap;
+import java.lang.ref.WeakReference;
 import java.util.Map;
 import java.util.Properties;
 
-import me.imid.swipebacklayout.lib.app.SwipeBackActivity;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
 
 /**
  * 嵌入web页面
@@ -93,23 +93,133 @@ import me.imid.swipebacklayout.lib.app.SwipeBackActivity;
 public class Html5Activity extends AppCompatActivity {
 
     private static final int SDK_PAY_FLAG = 1;
-    private final int CAMERA_CODE = 2;
-    File file;
     private IWXAPI api;
     private Html5WebView webView;
     RelativeLayout loading;
+    RelativeLayout titleLayer;
+    TextView tv_title;
+    RelativeLayout close;
     Bitmap bm;
 
     GpsInfo gpsInfo;
     SharedPreferencesHelper sharedPreferencesHelper;
+    String _phoneNum;
+    Boolean needNotLogin;
+
+    String _tradeNo = "";
+
+    ShareAction mShareAction;
+    UMShareListener mShareListener;
+
+    //图片上传
+    private ValueCallback<Uri> uploadMessage;
+    private ValueCallback<Uri[]> uploadMessageAboveL;
+    private final static int FILE_CHOOSER_RESULT_CODE = 10000;
+
+    final static String TAG =  Html5Activity.class.getName();
 
     Handler handler = new Handler(){
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-            if(msg.what == 1){
+            try{
                 stopLoading();
+                if(msg.what == 0){
+                    startLoading();
+                }else if(msg.what == 2){//微信支付
+                    String ret = msg.getData().getString("ret");
+                    JsonParser parser = new JsonParser();
+                    JsonObject jo = (JsonObject) parser.parse(ret);
+                    int code = jo.get("code").getAsInt();
+                    String message = jo.get("msg").getAsString();
+                    if(code == 200){
+                        api = WXAPIFactory.createWXAPI(Html5Activity.this, Constants.APP_ID);
+                        api.registerApp(Constants.APP_ID);
+                        if(_tradeNo != null){
+                            sharedPreferencesHelper.put(SharedPref.TRADE_NO,_tradeNo);
+                        }else{
+                            sharedPreferencesHelper.put(SharedPref.TRADE_NO,"");
+                        }
+
+                        String json = jo.get("data").getAsString();
+                        JSONObject jsonObject = new JSONObject(json);
+                        PayReq req = new PayReq();
+                        req.appId = (String) jsonObject.get("appid");
+                        req.partnerId = (String) jsonObject.get("partnerid");
+                        req.prepayId = (String) jsonObject.get("prepayid");
+                        req.nonceStr = (String) jsonObject.get("noncestr");
+                        req.timeStamp = (String) jsonObject.get("timestamp");
+                        req.packageValue = (String) jsonObject.get("package");
+                        req.sign = (String) jsonObject.get("sign");
+                        req.extData = "app data";
+                        api.sendReq(req);
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(Html5Activity.this);
+                    }else{
+                        Toast.makeText(Html5Activity.this, message, Toast.LENGTH_SHORT).show();
+                    }
+                }else if(msg.what == 3){//支付宝支付
+                    String ret = msg.getData().getString("ret");
+                    JsonParser parser = new JsonParser();
+                    JsonObject jo = (JsonObject) parser.parse(ret);
+                    int code = jo.get("code").getAsInt();
+                    String message = jo.get("msg").getAsString();
+                    if(code == 200){
+                        final String data = jo.get("data").getAsString();
+                        PayUtil p = new PayUtil();
+                        Map<String, Object> map = p.convertToMap(data);
+                        ActivityCompat.requestPermissions(Html5Activity.this,
+                                new String[]{Manifest.permission.READ_PHONE_STATE},
+                                1);
+                        if (null != map) {
+                            Runnable payRunnable = new Runnable() {
+                                @Override
+                                public void run() {
+                                    PayTask alipay = new PayTask(Html5Activity.this);
+                                    Map<String, String> result = alipay.payV2(data, true);
+                                    Log.i("alipay", result.toString());
+
+                                    Message msg = new Message();
+                                    msg.what = SDK_PAY_FLAG;
+                                    msg.obj = result;
+                                    mHandler.sendMessage(msg);
+                                }
+                            };
+
+                            Thread payThread = new Thread(payRunnable);
+                            payThread.start();
+                        }
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(Html5Activity.this);
+                    }else{
+                        Toast.makeText(Html5Activity.this, message, Toast.LENGTH_SHORT).show();
+                    }
+                }else if(msg.what == 4){//银联支付
+                    String ret = msg.getData().getString("ret");
+                    JsonParser parser = new JsonParser();
+                    JsonObject jo = (JsonObject) parser.parse(ret);
+                    int code = jo.get("code").getAsInt();
+                    String message = jo.get("msg").getAsString();
+                    if(code == 200){
+                        String tn = jo.get("data").getAsString();
+                        if (null != tn && !tn.isEmpty()) {
+                            UPPayAssistEx.startPay(Html5Activity.this, null, null, tn, "01");
+                        } else {
+                            Toast.makeText(Html5Activity.this, "银联支付错误", Toast.LENGTH_SHORT).show();
+                        }
+                    }else if(code == 991 || code == 992 || code == 993 || code == 995){
+                        HttpHelper.reLogin(Html5Activity.this);
+                    }else{
+                        Toast.makeText(Html5Activity.this, message, Toast.LENGTH_SHORT).show();
+                    }
+                }else if(msg.what == 5){
+                    webView.loadUrl(Const.APP_ROOT + Const.ORDER_DETAIL + _tradeNo);
+                }
+            }catch (Exception e){
+                Log.e(TAG, "Exception: " + e.getMessage());
+                Toast.makeText(Html5Activity.this,"连接超时",Toast.LENGTH_LONG).show();
             }
+
         }
     };
 
@@ -118,18 +228,76 @@ public class Html5Activity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_html5);
 
-        SharedPreferencesHelper sharedPreferencesHelper = new SharedPreferencesHelper(Html5Activity.this);
-        Boolean logined = (Boolean) sharedPreferencesHelper.get(SharedPref.LOGINED,false);
-        if(!logined){
-            Intent intent = new Intent(Html5Activity.this,SignInByCodeActivity.class);
-            startActivity(intent);
-            finish();
-            return;
+        needNotLogin = getIntent().getBooleanExtra("needNotLogin",false);
+        if(!needNotLogin){
+            SharedPreferencesHelper sharedPreferencesHelper = new SharedPreferencesHelper(Html5Activity.this);
+            Boolean logined = (Boolean) sharedPreferencesHelper.get(SharedPref.LOGINED,false);
+            if(!logined){
+                Intent intent = new Intent(Html5Activity.this,SignInByCodeActivity.class);
+                startActivity(intent);
+                finish();
+                return;
+            }
         }
 
         amapGps();
         StatusBarUtils.with(this).init();
         initViews();
+    }
+
+    private static class CustomShareListener implements UMShareListener {
+
+        private WeakReference<Html5Activity> mActivity;
+
+        private CustomShareListener(Html5Activity activity) {
+            mActivity = new WeakReference(activity);
+        }
+
+        @Override
+        public void onStart(SHARE_MEDIA platform) {
+
+        }
+
+        @Override
+        public void onResult(SHARE_MEDIA platform) {
+            if (platform != SHARE_MEDIA.MORE && platform != SHARE_MEDIA.SMS
+                    && platform != SHARE_MEDIA.EMAIL
+                    && platform != SHARE_MEDIA.FLICKR
+                    && platform != SHARE_MEDIA.FOURSQUARE
+                    && platform != SHARE_MEDIA.TUMBLR
+                    && platform != SHARE_MEDIA.POCKET
+                    && platform != SHARE_MEDIA.PINTEREST
+
+                    && platform != SHARE_MEDIA.INSTAGRAM
+                    && platform != SHARE_MEDIA.GOOGLEPLUS
+                    && platform != SHARE_MEDIA.YNOTE
+                    && platform != SHARE_MEDIA.EVERNOTE) {
+                Toast.makeText(mActivity.get(), " 分享成功啦", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        @Override
+        public void onError(SHARE_MEDIA platform, Throwable t) {
+            if (platform != SHARE_MEDIA.MORE && platform != SHARE_MEDIA.SMS
+                    && platform != SHARE_MEDIA.EMAIL
+                    && platform != SHARE_MEDIA.FLICKR
+                    && platform != SHARE_MEDIA.FOURSQUARE
+                    && platform != SHARE_MEDIA.TUMBLR
+                    && platform != SHARE_MEDIA.POCKET
+                    && platform != SHARE_MEDIA.PINTEREST
+
+                    && platform != SHARE_MEDIA.INSTAGRAM
+                    && platform != SHARE_MEDIA.GOOGLEPLUS
+                    && platform != SHARE_MEDIA.YNOTE
+                    && platform != SHARE_MEDIA.EVERNOTE) {
+                Toast.makeText(mActivity.get(), " 分享失败啦", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        @Override
+        public void onCancel(SHARE_MEDIA platform) {
+            Toast.makeText(mActivity.get(), " 分享取消了", Toast.LENGTH_SHORT).show();
+        }
     }
 
     void initViews(){
@@ -141,31 +309,60 @@ public class Html5Activity extends AppCompatActivity {
         l.addView(webView);
 
         loading = (RelativeLayout) findViewById(R.id.html5_loading);
+        titleLayer = (RelativeLayout) findViewById(R.id.html5_title_layer);
+        tv_title = (TextView) findViewById(R.id.html5_title);
+        close = (RelativeLayout) findViewById(R.id.html5_close);
+        close.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        });
 
         sharedPreferencesHelper = new SharedPreferencesHelper(Html5Activity.this);
 
+        String payWays = getIntent().getStringExtra("payWays");
         String url = getIntent().getStringExtra("url");
+        _tradeNo = getIntent().getStringExtra("tradeNo");
+
+        if(!url.contains("http")){
+            titleLayer.setVisibility(View.GONE);
+        }else{
+            titleLayer.setVisibility(View.VISIBLE);
+        }
 
         if(!(Boolean) sharedPreferencesHelper.get(SharedPref.HTML5_LOGINED,false)){
-            Properties p = null;
-            try {
-                p = PropertyUtil.getConfigProperties(getApplicationContext());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            String channel = p.getProperty("channel").toString();
-            url = Const.APP_ROOT + Const.MIDDLE + "?token="+ HttpHelper.getAuthorization()
-                    +"&appkey=" + ApiSignUtil.getAppkey() + "&appSecret=" + ApiSignUtil.getAppSecret()
-                    +"&redirectUrl=" + url + "&v="+ ApiSignUtil.getV() + "&channel=" + channel;
-        }else{
             if(!url.contains("http")){
-                url = Const.APP_ROOT + url;
+                Properties p = null;
+                try {
+                    p = PropertyUtil.getConfigProperties(getApplicationContext());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                String channel = p.getProperty("channel").toString();
+                if(url.contains(Const.PAY)){
+                    url = Const.APP_ROOT + Const.MIDDLE + "?token="+ HttpHelper.getAuthorization()
+                            +"&appkey=" + ApiSignUtil.getAppkey() + "&appSecret=" + ApiSignUtil.getAppSecret()
+                            +"&redirectUrl=" + url + "&v="+ ApiSignUtil.getV() + "&channel=" + channel + "&paytype=" + payWays;
+                }else{
+                    url = Const.APP_ROOT + Const.MIDDLE + "?token="+ HttpHelper.getAuthorization()
+                            +"&appkey=" + ApiSignUtil.getAppkey() + "&appSecret=" + ApiSignUtil.getAppSecret()
+                            +"&redirectUrl=" + url + "&v="+ ApiSignUtil.getV() + "&channel=" + channel;
+                }
             }
+        }else{
+            if(url.contains(Const.PAY)){
+                url = Const.APP_ROOT + url + "&type=" + payWays;;
+            }else{
+                if(!url.contains("http")){
+                    url = Const.APP_ROOT + url;
+                }
+            }
+
         }
 
         webView.addJavascriptInterface(new JsInterFace(), "android");
         webView.loadUrl(url);
-//        webView.loadUrl("http://www.baidu.com");
 //        webView.loadUrl("file:///android_asset/demo.html");
 
         webView.setWebViewClient(new WebViewClient(){
@@ -178,12 +375,13 @@ public class Html5Activity extends AppCompatActivity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
+                webView.getSettings().setBlockNetworkImage(false);
                 new Thread(){
                     @Override
                     public void run() {
                         super.run();
                         try {
-                            sleep(500);
+                            sleep(1000);
                             handler.sendEmptyMessage(1);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
@@ -193,14 +391,86 @@ public class Html5Activity extends AppCompatActivity {
             }
         });
 
+        webView.setWebChromeClient(new WebChromeClient(){
+            // For Android < 3.0
+            public void openFileChooser(ValueCallback<Uri> valueCallback) {
+                uploadMessage = valueCallback;
+                openImageChooserActivity();
+            }
+
+            // For Android  >= 3.0
+            public void openFileChooser(ValueCallback valueCallback, String acceptType) {
+                uploadMessage = valueCallback;
+                openImageChooserActivity();
+            }
+
+            //For Android  >= 4.1
+            public void openFileChooser(ValueCallback<Uri> valueCallback, String acceptType, String capture) {
+                uploadMessage = valueCallback;
+                openImageChooserActivity();
+            }
+
+            // For Android >= 5.0
+            @Override
+            public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, WebChromeClient.FileChooserParams fileChooserParams) {
+                uploadMessageAboveL = filePathCallback;
+                openImageChooserActivity();
+                return true;
+            }
+            @Override
+            public void onReceivedTitle(WebView view, String title) {
+                super.onReceivedTitle(view, title);
+                tv_title.setText(title);
+            }
+            @Override
+            public boolean onJsAlert(WebView view, String url, String message, JsResult result) {
+                return super.onJsAlert(view, url, message, result);
+            }
+        });
+
         //根据状态栏颜色来决定状态栏文字用黑色还是白色
         StatusBarUtil.setStatusBarMode(this, true, R.color.white);
+    }
+
+    //打开图库
+    private void openImageChooserActivity() {
+        Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+        i.addCategory(Intent.CATEGORY_OPENABLE);
+        i.setType("image/*");
+        startActivityForResult(Intent.createChooser(i, "Image Chooser"), FILE_CHOOSER_RESULT_CODE);
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private void onActivityResultAboveL(int requestCode, int resultCode, Intent intent) {
+        if (requestCode != FILE_CHOOSER_RESULT_CODE || uploadMessageAboveL == null)
+            return;
+        Uri[] results = null;
+        if (resultCode == Activity.RESULT_OK) {
+            if (intent != null) {
+                String dataString = intent.getDataString();
+                ClipData clipData = intent.getClipData();
+                if (clipData != null) {
+                    results = new Uri[clipData.getItemCount()];
+                    for (int i = 0; i < clipData.getItemCount(); i++) {
+                        ClipData.Item item = clipData.getItemAt(i);
+                        results[i] = item.getUri();
+                    }
+                }
+                if (dataString != null)
+                    results = new Uri[]{Uri.parse(dataString)};
+            }
+        }
+        uploadMessageAboveL.onReceiveValue(results);
+        uploadMessageAboveL = null;
     }
 
     //左滑返回
     int startX;
     int endX;
-    int scrollSize = 200;
+    int startY;
+    int endY;
+    int scrollSize = 250;
+    int scrollSizeY = 150;
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
 
@@ -210,14 +480,14 @@ public class Html5Activity extends AppCompatActivity {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                         startX = (int) event.getX();
+                        startY = (int) event.getY();
                         break;
                     case MotionEvent.ACTION_UP:
                         endX = (int) event.getX();
-                        if(endX>startX && webView.canGoBack() && endX-startX>scrollSize){
+                        endY = (int) event.getY();
+                        if(endX>startX && webView.canGoBack() && endX-startX>scrollSize && Math.abs(endY-startY) < scrollSizeY){
                             webView.goBack();
-                        }else if(endX<startX &&webView.canGoForward() && startX-endX>scrollSize){
-                            webView.goForward();
-                        }else if (endX>startX && !webView.canGoBack() && endX-startX>scrollSize){
+                        }else if (endX>startX && !webView.canGoBack() && endX-startX>scrollSize && Math.abs(endY-startY) < scrollSizeY){
                             finish();
                         }
                         break;
@@ -241,15 +511,16 @@ public class Html5Activity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        //拍照获取图片
-        if (requestCode == CAMERA_CODE) {
-            String path = file.getAbsolutePath().toString();
-            webView.loadUrl("javascript:setImage('" + path + "')");
-            //通知系统更新相册
-            Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-            Uri uri = Uri.fromFile(file);
-            intent.setData(uri);
-            this.sendBroadcast(intent);
+        //选择上传图片
+        if (requestCode == FILE_CHOOSER_RESULT_CODE) {
+            if (null == uploadMessage && null == uploadMessageAboveL) return;
+            Uri result = data == null || resultCode != RESULT_OK ? null : data.getData();
+            if (uploadMessageAboveL != null) {
+                onActivityResultAboveL(requestCode, resultCode, data);
+            } else if (uploadMessage != null) {
+                uploadMessage.onReceiveValue(result);
+                uploadMessage = null;
+            }
             return;
         }
 
@@ -264,13 +535,13 @@ public class Html5Activity extends AppCompatActivity {
         }
 
         String msg = "";
+        String mMode = "01";//"00" - 启动银联正式环境 "01" - 连接银联测试环境
         /*
          * 支付控件返回字符串:success、fail、cancel 分别代表支付成功，支付失败，支付取消
          */
         String str = data.getExtras().getString("pay_result");
         if(str != null){
             if (str.equalsIgnoreCase("success")) {
-
                 // 如果想对结果数据验签，可使用下面这段代码，但建议不验签，直接去商户后台查询交易结果
                 // result_data结构见c）result_data参数说明
                 if (data.hasExtra("result_data")) {
@@ -281,7 +552,7 @@ public class Html5Activity extends AppCompatActivity {
                         String dataOrg = resultJson.getString("data");
                         // 此处的verify建议送去商户后台做验签
                         // 如要放在手机端验，则代码必须支持更新证书
-                        boolean ret = true;//verify(dataOrg, sign, mMode);
+                        boolean ret = verify(dataOrg, sign, mMode);
                         if (ret) {
                             // 验签成功，显示支付结果
                             msg = "支付成功！";
@@ -300,37 +571,14 @@ public class Html5Activity extends AppCompatActivity {
                 msg = "用户取消了支付";
             }
 
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("支付结果通知");
-            builder.setMessage(msg);
-            builder.setInverseBackgroundForced(true);
-            // builder.setCustomTitle();
-            builder.setNegativeButton("确定", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.dismiss();
-                }
-            });
-            builder.create().show();
+            Toast.makeText(Html5Activity.this,msg,Toast.LENGTH_LONG).show();
         }
 
     }
 
-    //权限申请回调
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        for(int i = 0;i < permissions.length; i++){
-            switch (permissions[i]){
-                case Manifest.permission.CALL_PHONE:
-                    if(grantResults[i] == 0){
-    
-                    }else{
-                        Toast.makeText(Html5Activity.this, "请同意权限申请，以继续下一步操作！", Toast.LENGTH_LONG).show();
-                    }
-                    break;
-            }
-        }
+    private boolean verify(String msg, String sign64, String mode) {
+        // 此处的verify，商户需送去商户后台做验签
+        return true;
     }
 
     //声明AMapLocationClient类对象
@@ -380,6 +628,9 @@ public class Html5Activity extends AppCompatActivity {
                 if (TextUtils.equals(resultStatus, "9000")) {
                     // 该笔订单是否真实支付成功，需要依赖服务端的异步通知。
                     Toast.makeText(Html5Activity.this, "支付成功", Toast.LENGTH_SHORT).show();
+                    if(!_tradeNo.isEmpty()){
+                        webView.loadUrl(Const.APP_ROOT + Const.ORDER_DETAIL + _tradeNo);
+                    }
                 } else {
                     // 该笔订单真实的支付结果，需要依赖服务端的异步通知。
                     Toast.makeText(Html5Activity.this, "支付失败", Toast.LENGTH_SHORT).show();
@@ -441,6 +692,19 @@ public class Html5Activity extends AppCompatActivity {
     public class JsInterFace {
 
         @JavascriptInterface
+        public void reLogin(){
+            SharedPreferencesHelper sharedPreferencesHelper = new SharedPreferencesHelper(Html5Activity.this);
+            sharedPreferencesHelper.put(SharedPref.LOGINED,false);
+            sharedPreferencesHelper.put(SharedPref.HTML5_LOGINED,false);
+            sharedPreferencesHelper.put(SharedPref.TOKEN,"");
+            HttpHelper.setAuthorization("");
+            Toast.makeText(Html5Activity.this,"请重新登录",Toast.LENGTH_LONG).show();
+            Intent intent = new Intent(Html5Activity.this,MainActivity.class);
+            intent.putExtra("reLogin",true);
+            startActivity(intent);
+        }
+
+        @JavascriptInterface
         public String appInit() throws IOException {
             String ret = "";
 
@@ -462,14 +726,14 @@ public class Html5Activity extends AppCompatActivity {
 
         @JavascriptInterface
         public void loginSuccess(){
-            sharedPreferencesHelper.put(SharedPref.HTML5_LOGINED,true);
-            Toast.makeText(Html5Activity.this,"同步登录成功",Toast.LENGTH_LONG).show();
+            if(!HttpHelper.getAuthorization().isEmpty()){
+                sharedPreferencesHelper.put(SharedPref.HTML5_LOGINED,true);
+            }
         }
 
+        //返回原生
         @JavascriptInterface
-        public void getBack(String url){
-            Intent intent = new Intent(Html5Activity.this,MainActivity.class);
-            startActivity(intent);
+        public void backNative(){
             finish();
         }
 
@@ -509,227 +773,185 @@ public class Html5Activity extends AppCompatActivity {
         }
 
         @JavascriptInterface
-        public void wxpay(String tradeNo) {
-
-            api = WXAPIFactory.createWXAPI(Html5Activity.this, Constants.APP_ID);//wxb4ba3c02aa476ea1
-
-            api.registerApp(Constants.APP_ID);
-            try {
-                PayUtil p = new PayUtil();
-                JSONObject content = p.pay("WEIXIN");
-                if (content != null) {
-                    Log.e("get server pay params:", content.toString());
-                    JSONObject json = new JSONObject(content.getString("data"));
-                    if (null != json) {
-                        PayReq req = new PayReq();
-                        //req.appId = "wxf8b4f85f3a794e77";  // 测试用appId
-                        req.appId = json.getString("appid");
-                        req.partnerId = json.getString("partnerid");
-                        req.prepayId = json.getString("prepayid");
-                        req.nonceStr = json.getString("noncestr");
-                        req.timeStamp = json.getString("timestamp");
-                        req.packageValue = json.getString("package");
-                        req.sign = json.getString("sign");
-                        req.extData = "app data"; // optional
-                        Toast.makeText(Html5Activity.this, "正常调起支付", Toast.LENGTH_SHORT).show();
-                        // 在支付之前，如果应用没有注册到微信，应该先调用IWXMsg.registerApp将应用注册到微信
-                        api.sendReq(req);
-                    } else {
-                        Log.d("PAY_GET", "返回错误" + content.getString("msg"));
-                        Toast.makeText(Html5Activity.this, "返回错误" + content.getString("msg"), Toast.LENGTH_SHORT).show();
-                    }
-                } else {
-                    Log.d("PAY_GET", "服务器请求错误");
-                    Toast.makeText(Html5Activity.this, "服务器请求错误", Toast.LENGTH_SHORT).show();
-                }
-            } catch (Exception e) {
-                Log.e("PAY_GET", "异常：" + e.getMessage());
-                Toast.makeText(Html5Activity.this, "异常：" + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
+        public void orderDetail(String tradeNo){
+            _tradeNo = tradeNo;
+            handler.sendEmptyMessage(5);
         }
 
         @JavascriptInterface
-        public void alipay(String tradeNo) {
-            try {
-                PayUtil p = new PayUtil();
-                JSONObject content = p.pay("ALIPAY");
-                if (content != null) {
-                    Log.e("get server pay params:", content.toString());
-                    final String data = content.getString("data");
-                    Map<String, Object> map = p.convertToMap(data);
-                    ActivityCompat.requestPermissions(Html5Activity.this,
-                            new String[]{Manifest.permission.READ_PHONE_STATE},
-                            1);
-                    if (null != map) {
-                        Runnable payRunnable = new Runnable() {
-                            @Override
-                            public void run() {
-                                PayTask alipay = new PayTask(Html5Activity.this);
-                                Map<String, String> result = alipay.payV2(data, true);
-                                Log.i("msp", result.toString());
+        public void charge(final String payWay, final String amount){
+            _tradeNo = null;
+            handler.sendEmptyMessage(0);
+            new Thread(){
+                @Override
+                public void run() {
+                    String url = Const.CHARGE_TRADE;
+                    ChargeReq req = new ChargeReq();
+                    req.setRechargeAmount(amount);
+                    req.setRechargePayWay(payWay);
+                    Gson gson = new Gson();
+                    String json = gson.toJson(req);
+                    HttpHelper.sendOkHttpPost(url, json, new Callback() {
+                        @Override
+                        public void onFailure(Call call, IOException e) {
+                            Log.e(TAG, "onFailure: " + e.getMessage());
+                        }
 
-                                Message msg = new Message();
-                                msg.what = SDK_PAY_FLAG;
-                                msg.obj = result;
-                                mHandler.sendMessage(msg);
+                        @Override
+                        public void onResponse(Call call, Response response) throws IOException {
+                            String body = response.body().string();
+                            Log.i(TAG, "onResponse: " + body);
+                            Bundle bundle = new Bundle();
+                            bundle.putString("ret",body);
+                            android.os.Message msg = new android.os.Message();
+                            msg.setData(bundle);
+                            switch (payWay){
+                                case "Alipay":
+                                    msg.what = 3;
+                                    break;
+                                case "Wxpay":
+                                    msg.what = 2;
+                                    break;
+                                case "UnionPay":
+                                    msg.what = 4;
+                                    break;
                             }
-                        };
 
-                        Thread payThread = new Thread(payRunnable);
-                        payThread.start();
-                    } else {
-                        Log.d("PAY_GET", "返回错误" + content.getString("msg"));
-                        Toast.makeText(Html5Activity.this, "返回错误" + content.getString("msg"), Toast.LENGTH_SHORT).show();
+                            handler.sendMessage(msg);
+                        }
+                    });
+                }
+            }.start();
+        }
+
+        @JavascriptInterface
+        public void wxpay(final String tradeNo) {
+            _tradeNo = tradeNo;
+            handler.sendEmptyMessage(0);
+            new Thread(){
+                @Override
+                public void run() {
+                    String url = Const.ORDER_PAY;
+                    OrderPayReq req = new OrderPayReq();
+                    req.setPayWay(PayWayEnum.WEIXIN.toString());
+                    req.setTradeNo(tradeNo);
+                    Gson gson = new Gson();
+                    String json = gson.toJson(req);
+                    HttpHelper.sendOkHttpPost(url, json, new Callback() {
+                        @Override
+                        public void onFailure(Call call, IOException e) {
+                            Log.e(TAG, "onFailure: " + e.getMessage());
+                        }
+
+                        @Override
+                        public void onResponse(Call call, Response response) throws IOException {
+                            String body = response.body().string();
+                            Log.i(TAG, "onResponse: " + body);
+                            Bundle bundle = new Bundle();
+                            bundle.putString("ret",body);
+                            android.os.Message msg = new android.os.Message();
+                            msg.setData(bundle);
+                            msg.what = 2;
+                            handler.sendMessage(msg);
+                        }
+                    });
+                }
+            }.start();
+        }
+
+        @JavascriptInterface
+        public void alipay(final String tradeNo) {
+            _tradeNo = tradeNo;
+            handler.sendEmptyMessage(0);
+            new Thread(){
+                @Override
+                public void run() {
+                    String url = Const.ORDER_PAY;
+                    OrderPayReq req = new OrderPayReq();
+                    req.setPayWay(PayWayEnum.ALIPAY.toString());
+                    req.setTradeNo(tradeNo);
+                    Gson gson = new Gson();
+                    String json = gson.toJson(req);
+                    HttpHelper.sendOkHttpPost(url, json, new Callback() {
+                        @Override
+                        public void onFailure(Call call, IOException e) {
+                            Log.e(TAG, "onFailure: " + e.getMessage());
+                        }
+
+                        @Override
+                        public void onResponse(Call call, Response response) throws IOException {
+                            String body = response.body().string();
+                            Log.i(TAG, "onResponse: " + body);
+                            Bundle bundle = new Bundle();
+                            bundle.putString("ret",body);
+                            android.os.Message msg = new android.os.Message();
+                            msg.setData(bundle);
+                            msg.what = 3;
+                            handler.sendMessage(msg);
+                        }
+                    });
+                }
+            }.start();
+        }
+
+        @JavascriptInterface
+        public void unionpay(final String tradeNo) {
+            _tradeNo = tradeNo;
+            handler.sendEmptyMessage(0);
+            new Thread(){
+                @Override
+                public void run() {
+                    String url = Const.ORDER_PAY;
+                    OrderPayReq req = new OrderPayReq();
+                    req.setPayWay(PayWayEnum.UNIONPAY.toString());
+                    req.setTradeNo(tradeNo);
+                    Gson gson = new Gson();
+                    String json = gson.toJson(req);
+                    HttpHelper.sendOkHttpPost(url, json, new Callback() {
+                        @Override
+                        public void onFailure(Call call, IOException e) {
+                            Log.e(TAG, "onFailure: " + e.getMessage());
+                        }
+
+                        @Override
+                        public void onResponse(Call call, Response response) throws IOException {
+                            String body = response.body().string();
+                            Log.i(TAG, "onResponse: " + body);
+                            Bundle bundle = new Bundle();
+                            bundle.putString("ret",body);
+                            android.os.Message msg = new android.os.Message();
+                            msg.setData(bundle);
+                            msg.what = 4;
+                            handler.sendMessage(msg);
+                        }
+                    });
+                }
+            }.start();
+        }
+
+        @JavascriptInterface
+        public void callPhone(final String phoneNum) {
+            _phoneNum = phoneNum;
+            CommomDialog dialog = new CommomDialog(Html5Activity.this, R.style.dialog, "呼叫：" + phoneNum, new CommomDialog.OnCloseListener() {
+                @Override
+                public void onClick(Dialog dialog, boolean confirm) {
+                    if(confirm){
+                        dialog.dismiss();
+                        if (ActivityCompat.checkSelfPermission(Html5Activity.this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+                            // TODO: Consider calling
+                            ActivityCompat.requestPermissions(Html5Activity.this, new String[]{
+                                    Manifest.permission.CALL_PHONE
+                            }, 100);
+                            return;
+                        }
+                        Intent intent = new Intent(Intent.ACTION_CALL);
+                        Uri data = Uri.parse("tel:" + phoneNum);
+                        intent.setData(data);
+                        startActivity(intent);
                     }
-                } else {
-                    Log.d("PAY_GET", "服务器请求错误");
-                    Toast.makeText(Html5Activity.this, "服务器请求错误", Toast.LENGTH_SHORT).show();
                 }
-            } catch (Exception e) {
-                Log.e("PAY_GET", "异常：" + e.getMessage());
-                Toast.makeText(Html5Activity.this, "异常：" + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        }
-
-        @JavascriptInterface
-        public void unionpay(String tradeNo) {
-            try {
-                PayUtil p = new PayUtil();
-                String tn = p.getUnionPayTn();
-                if (null != tn && !tn.isEmpty()) {
-                    UPPayAssistEx.startPay(Html5Activity.this, null, null, tn, "01");
-                    Toast.makeText(Html5Activity.this, "获取数据：" + tn.toString(), Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(Html5Activity.this, "支付错误", Toast.LENGTH_SHORT).show();
-                }
-
-            } catch (Exception e) {
-                Log.e("PAY_GET", "异常：" + e.getMessage());
-                Toast.makeText(Html5Activity.this, "异常：" + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        }
-
-        @JavascriptInterface
-        public String getChannel() {
-            String ret = "";
-            //读取配置文件信息
-            try {
-                Properties p = PropertyUtil.getConfigProperties(getApplicationContext());
-                ret = p.getProperty("channel").toString();
-                Toast.makeText(Html5Activity.this, ret, Toast.LENGTH_LONG).show();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            return ret;
-        }
-
-        @JavascriptInterface
-        public void callCamera() {
-            Intent intent = new Intent();
-            intent.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
-            intent.addCategory(Intent.CATEGORY_DEFAULT);
-
-            file = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
-                    + "/DCIM/Camera/" + System.currentTimeMillis() + ".jpg");
-            file.getParentFile().mkdirs();
-
-            //改变Uri  注意和xml中的一致
-            Uri uri = FileProvider.getUriForFile(Html5Activity.this, com.NewCenturyHotels.NewCentury.cons.AppInfo.FILE_AUTHORITY, file);
-            //添加权限
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
-
-            ActivityCompat.requestPermissions(Html5Activity.this,
-                    new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                    1);
-
-            startActivityForResult(intent, CAMERA_CODE);
-        }
-
-        @JavascriptInterface
-        public void callPhone(String phoneNum) {
-            Intent intent = new Intent(Intent.ACTION_CALL);
-            Uri data = Uri.parse("tel:" + phoneNum);
-            intent.setData(data);
-            if (ActivityCompat.checkSelfPermission(Html5Activity.this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
-                // TODO: Consider calling
-                return;
-            }
-            startActivity(intent);
-        }
-
-        @JavascriptInterface
-        public void setCookies(String cookiesPath,String cookies) {
-            Map<String, String> cookieMap = new HashMap<>();
-            SharedPreferences sp = getPreferences(Context.MODE_PRIVATE);
-            SharedPreferences.Editor editor = sp.edit();
-            editor.putString("cookiesPath", cookiesPath);
-            editor.commit();
-
-            String cookie = sp.getString("cookies", "");// 从SharedPreferences中获取整个Cookie串
-            if(TextUtils.isEmpty(cookie) || cookie.compareTo(cookies) != 0){
-                cookie = cookies;
-                editor.putString("cookies",cookies);
-            }
-
-            if (!TextUtils.isEmpty(cookie)) {
-                String[] cookieArray = cookie.split(";");// 多个Cookie是使用分号分隔的
-                for (int i = 0; i < cookieArray.length; i++) {
-                    int position = cookieArray[i].indexOf("=");// 在Cookie中键值使用等号分隔
-                    String cookieName = cookieArray[i].substring(0, position);// 获取键
-                    String cookieValue = cookieArray[i].substring(position + 1);// 获取值
-
-                    String value = cookieName + "=" + cookieValue;// 键值对拼接成 value
-                    Log.i("cookie", value);
-                    CookieManager.getInstance().setCookie(HttpUtil.getDomain(cookiesPath), value);// 设置 Cookie
-                }
-            }
-        }
-
-        @JavascriptInterface
-        public String bitmapToBase64(){
-            Bitmap bitmap = BitmapFactory.decodeResource(getResources(),R.drawable.splash);
-            String bmstr = Base64BitmapUtil.bitmapToBase64(bitmap);
-            Log.i("bitmapToBase64", "onCreate: " + bmstr);
-            return bmstr;
-        }
-
-        @JavascriptInterface
-        public String bitmapCompress(){
-            String base64 = "";
-
-            FileInputStream fis = null;
-            try {
-                fis = new FileInputStream(Environment.getExternalStorageDirectory().getAbsolutePath()
-                        +"/DCIM/Camera/IMG_20180327_152649.jpg");
-
-                Bitmap bitmap  = BitmapFactory.decodeStream(fis);
-
-                Bitmap bmNew = BitmapCompressHelper.compressImage3(bitmap);
-                bmNew = BitmapCompressHelper.compressImage(bmNew);
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                bmNew.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-                Log.i("compressImage", "bitmapCompress: " + baos.toByteArray().length);
-
-                bm = bmNew;
-                base64 = Base64BitmapUtil.bitmapToBase64(bmNew);
-
-                File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
-                        +"/ATest/IMG000004.jpg");
-                if(!file.exists()){
-                    file.getParentFile().mkdir();
-                    file.createNewFile();
-                }
-                FileOutputStream fos = new FileOutputStream(file);
-                bmNew.compress(Bitmap.CompressFormat.PNG,100,fos);
-                fos.flush();
-                fos.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            
-            return base64;
+            });
+            dialog.show();
         }
 
         @JavascriptInterface
@@ -738,52 +960,28 @@ public class Html5Activity extends AppCompatActivity {
             return  gson.toJson(gpsInfo);
         }
 
-        //分享到微信朋友
         @JavascriptInterface
-        public void shareWx(String url,String title,String content){
-            UMWeb web = new UMWeb("http://mobile.umeng.com/social");
-            web.setTitle("This is web title");
-            web.setThumb(new UMImage(Html5Activity.this, R.mipmap.logo));
-            web.setDescription("my description");
-            new ShareAction(Html5Activity.this).withMedia(web )
-                    .setPlatform(SHARE_MEDIA.WEIXIN)
-                    .setCallback(shareListener).share();
-        }
+        public void shareClick(final String title, final String desc, final String link, final String imgUrl){
+            mShareListener = new CustomShareListener(Html5Activity.this);
+            mShareAction = new ShareAction(Html5Activity.this).setDisplayList(
+                    SHARE_MEDIA.WEIXIN, SHARE_MEDIA.WEIXIN_CIRCLE, SHARE_MEDIA.QQ)
+                    .setShareboardclickCallback(new ShareBoardlistener() {
+                        @Override
+                        public void onclick(SnsPlatform snsPlatform, SHARE_MEDIA share_media) {
+                            UMWeb web = new UMWeb(link);
+                            web.setTitle(title);
+                            web.setDescription(desc);
+                            web.setThumb(new UMImage(Html5Activity.this, imgUrl));
+                            new ShareAction(Html5Activity.this).withMedia(web)
+                                    .setPlatform(share_media)
+                                    .setCallback(mShareListener)
+                                    .share();
 
-        //分享到微信朋友圈
-        @JavascriptInterface
-        public void shareWxTimeline(String url,String title,String content){
-            UMWeb web = new UMWeb("http://mobile.umeng.com/social");
-            web.setTitle("This is web title");
-            web.setThumb(new UMImage(Html5Activity.this, R.mipmap.logo));
-            web.setDescription("my description");
-            new ShareAction(Html5Activity.this).withMedia(web )
-                    .setPlatform(SHARE_MEDIA.WEIXIN_CIRCLE)
-                    .setCallback(shareListener).share();
-        }
-
-        //分享到QQ
-        @JavascriptInterface
-        public void shareQQ(String url,String title,String content){
-            UMWeb web = new UMWeb("http://mobile.umeng.com/social");
-            web.setTitle("This is web title");
-            web.setThumb(new UMImage(Html5Activity.this, R.mipmap.logo));
-            web.setDescription("my description");
-            new ShareAction(Html5Activity.this).withMedia(web)
-                    .setPlatform(SHARE_MEDIA.QQ)
-                    .setCallback(shareListener).share();
-        }
-
-        //分享到新浪微博
-        @JavascriptInterface
-        public void shareWeibo(String url,String title,String content){
-            UMWeb web = new UMWeb("http://mobile.umeng.com/social");
-            web.setTitle("This is web title");
-            web.setThumb(new UMImage(Html5Activity.this, R.mipmap.logo));
-            web.setDescription("my description");
-            new ShareAction(Html5Activity.this).withMedia(web )
-                    .setPlatform(SHARE_MEDIA.SINA)
-                    .setCallback(shareListener).share();
+                        }
+                    });
+            ShareBoardConfig config = new ShareBoardConfig();
+            config.setMenuItemBackgroundShape(ShareBoardConfig.BG_SHAPE_NONE);
+            mShareAction.open(config);
         }
 
         //打开地图软件
@@ -803,42 +1001,6 @@ public class Html5Activity extends AppCompatActivity {
             }
         }
     }
-
-    //监听友盟分享结果
-    private UMShareListener shareListener = new UMShareListener() {
-        /**
-         * @descrption 分享开始的回调
-         * @param platform 平台类型
-         */
-        @Override
-        public void onStart(SHARE_MEDIA platform) {
-        }
-        /**
-         * @descrption 分享成功的回调
-         * @param platform 平台类型
-         */
-        @Override
-        public void onResult(SHARE_MEDIA platform) {
-            Toast.makeText(Html5Activity.this,"成功了",Toast.LENGTH_LONG).show();
-        }
-        /**
-         * @descrption 分享失败的回调
-         * @param platform 平台类型
-         * @param t 错误原因
-         */
-        @Override
-        public void onError(SHARE_MEDIA platform, Throwable t) {
-            Toast.makeText(Html5Activity.this,"失败"+t.getMessage(),Toast.LENGTH_LONG).show();
-        }
-        /**
-         * @descrption 分享取消的回调
-         * @param platform 平台类型
-         */
-        @Override
-        public void onCancel(SHARE_MEDIA platform) {
-            Toast.makeText(Html5Activity.this,"取消了",Toast.LENGTH_LONG).show();
-        }
-    };
 
     @Override
     public void onBackPressed() {

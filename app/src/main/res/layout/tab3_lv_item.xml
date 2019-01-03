@@ -1,10 +1,8 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
+    android:layout_height="165dp"
     android:padding="10dp">
-
-
     <TextView
         android:id="@+id/order_hotel_name"
         android:layout_width="wrap_content"
@@ -93,20 +91,6 @@
         android:layout_below="@+id/order_price"
         android:layout_marginTop="18dp"></RelativeLayout>
     <Button
-        android:id="@+id/order_pay"
-        android:visibility="gone"
-        android:layout_width="80dp"
-        android:layout_height="28dp"
-        android:background="@drawable/btn_black"
-        android:layout_marginTop="10dp"
-        android:layout_marginRight="5dp"
-        android:layout_below="@+id/order_line"
-        android:layout_alignParentRight="true"
-        android:focusable="false"
-        android:text="去支付"
-        android:textSize="14dp"
-        android:textColor="#FFFFFFFF"/>
-    <Button
         android:id="@+id/order_cancel"
         android:visibility="gone"
         android:layout_width="80dp"
@@ -121,7 +105,21 @@
         android:textSize="14dp"
         android:textColor="#FF1A1A1A"/>
     <Button
-        android:id="@+id/order_comment"
+        android:id="@+id/order_pay"
+        android:visibility="gone"
+        android:layout_width="80dp"
+        android:layout_height="28dp"
+        android:background="@drawable/btn_black"
+        android:layout_marginTop="10dp"
+        android:layout_marginRight="5dp"
+        android:layout_below="@+id/order_line"
+        android:layout_toLeftOf="@+id/order_cancel"
+        android:focusable="false"
+        android:text="支付"
+        android:textSize="14dp"
+        android:textColor="#FFFFFFFF"/>
+    <Button
+        android:id="@+id/order_del"
         android:visibility="gone"
         android:layout_width="80dp"
         android:layout_height="28dp"
@@ -130,6 +128,20 @@
         android:layout_marginRight="5dp"
         android:layout_below="@+id/order_line"
         android:layout_alignParentRight="true"
+        android:focusable="false"
+        android:text="删除"
+        android:textSize="14dp"
+        android:textColor="#FF1A1A1A"/>
+    <Button
+        android:id="@+id/order_comment"
+        android:visibility="gone"
+        android:layout_width="80dp"
+        android:layout_height="28dp"
+        android:background="@drawable/btn_white"
+        android:layout_marginTop="10dp"
+        android:layout_marginRight="5dp"
+        android:layout_below="@+id/order_line"
+        android:layout_toLeftOf="@+id/order_del"
         android:focusable="false"
         android:text="评论"
         android:textSize="14dp"
@@ -143,38 +155,9 @@
         android:layout_marginTop="10dp"
         android:layout_marginRight="5dp"
         android:layout_below="@+id/order_line"
-        android:layout_alignParentRight="true"
+        android:layout_toLeftOf="@+id/order_del"
         android:focusable="false"
         android:text="查看评论"
-        android:textSize="14dp"
-        android:textColor="#FF1A1A1A"/>
-
-    <Button
-        android:id="@+id/order_repay"
-        android:visibility="gone"
-        android:layout_width="80dp"
-        android:layout_height="28dp"
-        android:background="@drawable/btn_white"
-        android:layout_marginTop="10dp"
-        android:layout_marginRight="5dp"
-        android:layout_below="@+id/order_line"
-        android:layout_alignParentRight="true"
-        android:focusable="false"
-        android:text="再次预订"
-        android:textSize="14dp"
-        android:textColor="#FF1A1A1A"/>
-    <Button
-        android:id="@+id/order_del"
-        android:visibility="gone"
-        android:layout_width="80dp"
-        android:layout_height="28dp"
-        android:background="@drawable/btn_white"
-        android:layout_marginTop="10dp"
-        android:layout_marginRight="15dp"
-        android:layout_below="@+id/order_line"
-        android:layout_toLeftOf="@+id/order_repay"
-        android:focusable="false"
-        android:text="删除"
         android:textSize="14dp"
         android:textColor="#FF1A1A1A"/>
 </RelativeLayout>

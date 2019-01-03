@@ -15,15 +15,15 @@
 
     <TextView
         android:id="@+id/ad_tv_timer"
-        android:layout_width="50dp"
+        android:layout_width="60dp"
         android:layout_height="30dp"
         android:layout_alignParentRight="true"
         android:layout_marginTop="20dp"
         android:layout_marginRight="20dp"
         android:background="@drawable/bg_ad"
         android:gravity="center"
-        android:text="5秒"
-        android:textSize="15dp"
+        android:text="跳过3s"
+        android:textSize="13dp"
         android:textColor="#FFFFFF"/>
 
 </RelativeLayout>
