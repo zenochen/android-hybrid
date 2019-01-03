@@ -2,8 +2,8 @@ package com.NewCenturyHotels.NewCentury.util;
 
 public class ApiSignUtil {
 
-    final static String appkey = "400001";
-    final static String appSecret = "abcdefg";
+    final static String appkey = "200004";//400001
+    final static String appSecret = "hd4kjamvq373fl457c1burwk22c3je";//abcdefg
     private static String v = "";
 
     public static void init(){

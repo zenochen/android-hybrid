@@ -5,64 +5,64 @@ package com.NewCenturyHotels.NewCentury.cons;
  */
 public class Const {
 
-    public static final String ROOT_SERVER = "http://test-server-api-gateway.shands.cn/gw-rest/api";
-    public static final String _ROOT_SERVER = "http://test-server-api-gateway.shands.cn/gw-rest/";
+    public static final String ROOT_SERVER = "http://api-center.kaiyuanhotels.com";
+    public static final String _ROOT_SERVER = "http://test-server-api-gateway.shands.cn";
     //用户密码登录
-    public static final String SIGN_IN = ROOT_SERVER + "/member/login";
+    public static final String SIGN_IN = ROOT_SERVER + "/gw-rest/api/member/login";
     //验证码登录
-    public static final String SIGN_BY_CODE = ROOT_SERVER + "/member/mobileLogin";
+    public static final String SIGN_BY_CODE = ROOT_SERVER + "/gw-rest/api/member/mobileLogin";
     //注册
-    public static final String SIGN_UP = ROOT_SERVER + "/member/memberRegister";
+    public static final String SIGN_UP = ROOT_SERVER + "/gw-rest/api/member/memberRegister";
     //忘记密码
-    public static final String MODIFY_PWD = ROOT_SERVER + "/member/memberModifyPwd";
+    public static final String MODIFY_PWD = ROOT_SERVER + "/gw-rest/api/member/memberModifyPwd";
     //发送手机验证码
-    public static final String SEND_MOBILE_CHECK = ROOT_SERVER + "/message/sendMobileCheckCode";
+    public static final String SEND_MOBILE_CHECK = ROOT_SERVER + "/gw-rest/api/message/sendMobileCheckCode";
     //发送邮箱验证码
-    public static final String SEND_EMAIL_CHECK = ROOT_SERVER + "/message/sendEmailCheckCode";
+    public static final String SEND_EMAIL_CHECK = ROOT_SERVER + "/gw-rest/api/message/sendEmailCheckCode";
     //发送登录的手机验证码
-    public static final String SEND_LOGIN_MOBILE_CHECK = ROOT_SERVER + "/message/sendLoginMobileCheckCode";
+    public static final String SEND_LOGIN_MOBILE_CHECK = ROOT_SERVER + "/gw-rest/api/message/sendLoginMobileCheckCode";
     //发送登录的邮箱验证码
-    public static final String SEND_LOGIN_EMAIL_CHECK = ROOT_SERVER + "/message/sendLoginEmailCheckCode";
+    public static final String SEND_LOGIN_EMAIL_CHECK = ROOT_SERVER + "/gw-rest/api/message/sendLoginEmailCheckCode";
     //未登录校验验证码
-    public static final String VERIFY_CHECK_CODE = ROOT_SERVER + "/message/verifyCheckCode";
+    public static final String VERIFY_CHECK_CODE = ROOT_SERVER + "/gw-rest/api/message/verifyCheckCode";
     //已登录校验验证码
-    public static final String VERIFY_CHECK_CODE_LOGINED = ROOT_SERVER + "/message/verifyLoginCheckCode";
+    public static final String VERIFY_CHECK_CODE_LOGINED = ROOT_SERVER + "/gw-rest/api/message/verifyLoginCheckCode";
     //校验是否是会员
-    public static final String CHECK_MEMBER = ROOT_SERVER + "/member/checkMember";
+    public static final String CHECK_MEMBER = ROOT_SERVER + "/gw-rest/api/member/checkMember";
     //修改手机/邮箱
-    public static final String CHANGE_MOBIL_EMAIL = ROOT_SERVER + "/vipMember/changeMobileOrEmail";
+    public static final String CHANGE_MOBIL_EMAIL = ROOT_SERVER + "/gw-rest/api/vipMember/changeMobileOrEmail";
     //个人基本信息
-    public static final String VIP_MEMBER = ROOT_SERVER + "/vipMember/toVipMemberCenter";
+    public static final String VIP_MEMBER = ROOT_SERVER + "/gw-rest/api/vipMember/toVipMemberCenter";
     //会员卡列表
-    public static final String MEMEBER_CARDS = ROOT_SERVER + "/member/memberCardList";
+    public static final String MEMEBER_CARDS = ROOT_SERVER + "/gw-rest/api/member/memberCardList";
     //切换卡号
-    public static final String CHANGE_CARD = ROOT_SERVER + "/member/changeCardNo";
+    public static final String CHANGE_CARD = ROOT_SERVER + "/gw-rest/api/member/changeCardNo";
     //消息列表
-    public static final String MSG_LIST = ROOT_SERVER + "/message/messageList";
+    public static final String MSG_LIST = ROOT_SERVER + "/gw-rest/api/message/messageList";
     //消息详情
-    public static final String MSG_DETAIL = ROOT_SERVER + "/message/messageDetail";
+    public static final String MSG_DETAIL = ROOT_SERVER + "/gw-rest/api/message/messageDetail";
     //我的订单
-    public static final String TRADE_LIST = ROOT_SERVER + "/trade/list";
+    public static final String TRADE_LIST = ROOT_SERVER + "/gw-rest/api/trade/list";
     //编辑基本信息
-    public static final String UPDATE_USER_INFO = ROOT_SERVER + "/vipMember/changeUserInfo";
+    public static final String UPDATE_USER_INFO = ROOT_SERVER + "/gw-rest/api/vipMember/changeUserInfo";
     //个人中心
-    public static final String USER_CENTER = ROOT_SERVER + "/index/memberInfo";
+    public static final String USER_CENTER = ROOT_SERVER + "/gw-rest/api/index/memberInfo";
     //字典按组查询
-    public static final String DICT_LIST = ROOT_SERVER + "/common/dictItemList";
+    public static final String DICT_LIST = ROOT_SERVER + "/gw-rest/api/common/dictItemList";
     //应用初始化-获取版本号
-    public static final String APP_VERSION = ROOT_SERVER + "/version/getVersion";
+    public static final String APP_VERSION = ROOT_SERVER + "/gw-rest/api/version/getVersion";
     //首页图标
-    public static final String HOME_PAGE_ICON = ROOT_SERVER +  "/homePage/findHomePageList";
+    public static final String HOME_PAGE_ICON = ROOT_SERVER +  "/gw-rest/api/homePage/findHomePageList";
     //订单支付
-    public static final String ORDER_PAY = ROOT_SERVER +  "/trade/pay";
+    public static final String ORDER_PAY = ROOT_SERVER +  "/gw-rest/api/trade/pay";
     //订单详情
-    public static final String TRADE_DETAIL = ROOT_SERVER +  "/trade/detail";
+    public static final String TRADE_DETAIL = ROOT_SERVER +  "/gw-rest/api/trade/detail";
     //取消订单
-    public static final String TRADE_CANCEL = ROOT_SERVER +  "/trade/cancel";
+    public static final String TRADE_CANCEL = ROOT_SERVER +  "/gw-rest/api/trade/cancel";
     //删除订单
-    public static final String TRADE_DEL = ROOT_SERVER +  "/trade/del";
+    public static final String TRADE_DEL = ROOT_SERVER +  "/gw-rest/api/trade/del";
     //创建卡值支付订单
-    public static final String CHARGE_TRADE = ROOT_SERVER + "/rechargeLog/buildReChargeTrade";
+    public static final String CHARGE_TRADE = ROOT_SERVER + "/gw-rest/api/rechargeLog/buildReChargeTrade";
     //获取版本号的参数
     public static final String SOURCE_TYPE = "ANDROID";
     //手机参数
@@ -71,9 +71,10 @@ public class Const {
     public static final String MESSAGE_CONTENT_TYPE_EMAIL = "EMAIL_EDIT_EMAIL";
 
     //-----------------HTML5跳转链接--------------------------
-    public static final String APP_ROOT = "http://test-app-xgw.shands.cn";
+    public static final String APP_ROOT = "http://app.kaiyuanhotels.com";
+    public static final String _APP_ROOT = "http://test-app-xgw.shands.cn";
     //地址拼接
-    public static final String FREEMARK_PATH = "http://test-server-api-gateway.shands.cn/gw-freemarket/api/free/redirectUrl?";
+    public static final String FREEMARK_PATH = "http://api-center.kaiyuanhotels.com/gw-freemarket/api/free/redirectUrl?";//test-server-api-gateway.shands.cn
     //中间页
     public static final String MIDDLE = "/middle";
     //搜索酒店

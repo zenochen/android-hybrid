@@ -63,7 +63,7 @@
         <!-- 同盾 -->
         <meta-data
             android:name="PARTNER_CODE"
-            android:value="kaiyuan" />
+            android:value="kaiyuanhotels" />
 
         <!-- 高德地图key -->
         <meta-data

@@ -525,7 +525,7 @@ public class ModStep2AuthCodeActivity extends SwipeBackActivity implements View.
             }, 100);
         }
 
-        FMAgent.initWithCallback(this, FMAgent.ENV_SANDBOX, new FMCallback() {
+        FMAgent.initWithCallback(this, FMAgent.ENV_PRODUCTION, new FMCallback() {
             @Override
             public void onEvent(String blackbox) {
                 // 注意这里不是主线程 请不要在这个函数里进行ui操作，否则可能会出现崩溃
@@ -539,7 +539,7 @@ public class ModStep2AuthCodeActivity extends SwipeBackActivity implements View.
         captcha = TDBindCaptcha.init(this,
                 new CaptchaConfig.Builder()
                         .appName("kaiyuan_and")//应用标识,由同盾提供
-                        .partnerCode("kaiyuan")//合作方编码,由同盾提供
+                        .partnerCode("kaiyuanhotels")//合作方编码,由同盾提供
                         .tapToClose(true)//默认fasle
                         .openLog(true)//默认为false
                         .timeOut(6000)//默认5000ms,单位ms
