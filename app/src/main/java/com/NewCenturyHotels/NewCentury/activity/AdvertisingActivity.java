@@ -89,25 +89,19 @@ public class AdvertisingActivity extends AppCompatActivity implements View.OnCli
         ad_timer.setOnClickListener(this);
         ad_bg.setOnClickListener(this);
 
-
         sharedPreferencesHelper = new SharedPreferencesHelper(AdvertisingActivity.this);
         Boolean ifFirst = (Boolean) sharedPreferencesHelper.get(SharedPref.FIRST_SHOW,true);
         int index = (Integer) sharedPreferencesHelper.get(SharedPref.AD_PIC_INDEX,0);
-        if(ifFirst){
-            String urls = sharedPreferencesHelper.get(SharedPref.APP_AD,"").toString();
-            if(!urls.isEmpty()){
-                String[] urlArray = urls.split(",");
-                List<String> picUrls = new ArrayList<>();
-                for(int i = 0;i < urlArray.length;i++){
-                    picUrls.add(urlArray[i]);
-                }
 
-                index = RandomUtil.getRandom(index,picUrls.size()-1);
-                sharedPreferencesHelper.put(SharedPref.AD_PIC_INDEX,index);
-                Glide.with(AdvertisingActivity.this)
-                        .load(picUrls.get(index))
-                        .into(ad_bg);
-            }
+        String app = sharedPreferencesHelper.get(SharedPref.APP_VERSION,"").toString();
+        Gson gson = new Gson();
+        AppVersionRes res = gson.fromJson(app,AppVersionRes.class);
+
+        if(ifFirst){
+            String url = res.getImgData().getStartUpImg()[index].getAdvertisingImage();
+            Glide.with(AdvertisingActivity.this)
+                    .load(url)
+                    .into(ad_bg);
             sharedPreferencesHelper.put(SharedPref.FIRST_SHOW,false);
         }else{
             sharedPreferencesHelper = new SharedPreferencesHelper(AdvertisingActivity.this);
@@ -141,17 +135,10 @@ public class AdvertisingActivity extends AppCompatActivity implements View.OnCli
             }
         }
 
-        AppVersionRes.ImgDataInfo imgDataInfo;
-        if(App.mInfo != null){
-            imgDataInfo = ((AppVersionRes)(App.mInfo.get(AppInfo.APP_VERSION))).getImgData().getStartUpImg()[index];
-            url = imgDataInfo.getRedirectUrl();
-        }else{
-            Gson gson = new Gson();
-            AppVersionRes res = gson.fromJson(sharedPreferencesHelper.get(SharedPref.APP_VERSION,"").toString(),AppVersionRes.class);
-            imgDataInfo = ((AppVersionRes)(App.mInfo.get(AppInfo.APP_VERSION))).getImgData().getStartUpImg()[index];
-            url = imgDataInfo.getRedirectUrl();
-        }
 
+        if(!app.isEmpty()){
+            url = res.getImgData().getStartUpImg()[index].getRedirectUrl();
+        }
     }
 
     void startTimer(){

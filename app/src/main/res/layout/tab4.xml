@@ -316,7 +316,8 @@
                         </RelativeLayout>
                         <RelativeLayout
                             android:layout_width="match_parent"
-                            android:layout_height="196dp">
+                            android:layout_height="196dp"
+                            android:background="@drawable/timg2">
                             <com.youth.banner.Banner
                                 xmlns:app="http://schemas.android.com/apk/res-auto"
                                 android:id="@+id/tab4_banner_login"
@@ -416,7 +417,8 @@
                         </RelativeLayout>
                         <RelativeLayout
                             android:layout_width="match_parent"
-                            android:layout_height="196dp">
+                            android:layout_height="196dp"
+                            android:background="@drawable/timg2">
                             <com.youth.banner.Banner
                                 xmlns:app="http://schemas.android.com/apk/res-auto"
                                 android:id="@+id/tab4_banner_unlogin"

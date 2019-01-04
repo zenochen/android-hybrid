@@ -128,15 +128,14 @@ public class HomeFragment extends Fragment {
         sharedPreferencesHelper = new SharedPreferencesHelper(getActivity());
         Boolean ifFirst = (Boolean) sharedPreferencesHelper.get(SharedPref.FIRST_SHOW,true);
         if(ifFirst){
-            String urls = sharedPreferencesHelper.get(SharedPref.HOME_IMAGES,"").toString();
-            if(!urls.isEmpty()){
-                String[] urlArray = urls.split(",");
-                List<String> picUrls = new ArrayList<>();
-                for(int i = 0;i < urlArray.length;i++){
-                    picUrls.add(urlArray[i]);
-                }
-                initBanner(picUrls);
+            String app = sharedPreferencesHelper.get(SharedPref.APP_VERSION,"").toString();
+            Gson gson = new Gson();
+            AppVersionRes res = gson.fromJson(app,AppVersionRes.class);
+            List<String> picUrls = new ArrayList<>();
+            for(int i = 0;i < res.getImgData().getPageImg().length;i++){
+                picUrls.add(res.getImgData().getPageImg()[i].getAdvertisingImage());
             }
+            initBanner(picUrls);
         }else{
             List<File> files = new ArrayList<>();
             sharedPreferencesHelper = new SharedPreferencesHelper(getContext());

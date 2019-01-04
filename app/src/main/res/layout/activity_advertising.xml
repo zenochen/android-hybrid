@@ -8,7 +8,7 @@
 
     <ImageView
         android:id="@+id/ad_iv_bg"
-        android:background="#FFFFFF"
+        android:background="@drawable/timg"
         android:scaleType="fitXY"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

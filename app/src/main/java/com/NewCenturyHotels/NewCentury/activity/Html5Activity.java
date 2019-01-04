@@ -469,7 +469,7 @@ public class Html5Activity extends AppCompatActivity {
     int endX;
     int startY;
     int endY;
-    int scrollSize = 250;
+    int scrollSize = 300;
     int scrollSizeY = 150;
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
